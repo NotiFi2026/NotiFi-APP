@@ -2,16 +2,27 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Text, View } from 'react-native';
 
 import { useEmergencyScreenData } from '@/features/escalation/application/hooks/useEmergencyScreenData';
+import { useResolveEscalation } from '@/features/escalation/application/hooks/useResolveEscalation';
 import { EmergencyScreen } from '@/features/escalation/presentation/components/EmergencyScreen';
 
 /**
  * D-4. 응급 풀스크린.
  * esid: 목데이터 키(fall/inactivity/respiration/anomaly — 발표 데모 경로) 또는
- *       실제 escalation_id (FCM 딥링크·대시보드 진입).
+ *       실제 escalation_id (FCM 딥링크·대시보드 진입) — 실 id면 E3 resolve 연동.
  */
 export default function EmergencyRoute() {
   const { esid } = useLocalSearchParams<{ esid: string }>();
-  const { data, isLoading, isError } = useEmergencyScreenData(esid);
+  const { data, isMock, isLoading, isError } = useEmergencyScreenData(esid);
+  const resolveMutation = useResolveEscalation(esid ?? '');
+
+  const handleResolve = (resolutionType: 'GUARDIAN_HANDLED' | 'FALSE_ALARM') => {
+    if (isMock) {
+      router.back(); // 데모 경로: 서버 호출 없이 종료
+      return;
+    }
+    if (resolveMutation.isPending) return; // 중복 탭 방지
+    resolveMutation.mutate(resolutionType);
+  };
 
   if (isLoading) {
     return (
@@ -35,8 +46,8 @@ export default function EmergencyRoute() {
   return (
     <EmergencyScreen
       data={data}
-      onConfirmHandled={() => router.back()}
-      onDismissFalseAlarm={() => router.back()}
+      onConfirmHandled={() => handleResolve('GUARDIAN_HANDLED')}
+      onDismissFalseAlarm={() => handleResolve('FALSE_ALARM')}
       onViewDetail={() => router.back()}
     />
   );
