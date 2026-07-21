@@ -1,10 +1,15 @@
+import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import type { EmergencyScreenData } from '../../domain/entities/Escalation';
+import { getEscalation } from '@/api/endpoints/escalations';
+import type { EscalationDetailResponse } from '@/api/endpoints/escalations';
+import { mapToScreenData } from '@/features/escalation/application/mappers/escalationMapper';
+import type { EmergencyScreenData } from '@/features/escalation/domain/entities/Escalation';
 
 /**
- * 발표용 임시 데이터 — 백엔드 API 명세 확정 전이라 AI 서버 직접 연동 예정.
- * TODO: 계약 확정 후 이 안만 실제 fetch(React Query)로 교체. 컴포넌트·라우트는 변경 불필요.
+ * esid가 목 키(fall 등)면 발표용 목데이터, 숫자(escalation_id)면 E2 실데이터.
+ * live-status.tsx의 데모 경로(/emergency/fall)는 그대로 유지된다.
+ * 실데이터는 IN_PROGRESS 동안 5초 간격 refetch로 단계 진행을 반영한다.
  */
 const MOCK_ESCALATIONS: Record<string, EmergencyScreenData> = {
   fall: {
@@ -65,7 +70,44 @@ const MOCK_ESCALATIONS: Record<string, EmergencyScreenData> = {
   },
 };
 
-export function useEmergencyScreenData(esid: string | undefined) {
-  const data = useMemo(() => MOCK_ESCALATIONS[esid ?? 'fall'] ?? MOCK_ESCALATIONS.fall, [esid]);
-  return { data };
+const MOCK_KEYS = new Set(Object.keys(MOCK_ESCALATIONS));
+
+export function isMockEscalationId(esid: string | undefined): boolean {
+  return !esid || MOCK_KEYS.has(esid);
+}
+
+interface EmergencyScreenState {
+  data: EmergencyScreenData | undefined;
+  detail: EscalationDetailResponse | undefined;
+  isMock: boolean;
+  isLoading: boolean;
+  isError: boolean;
+}
+
+export function useEmergencyScreenData(esid: string | undefined): EmergencyScreenState {
+  const isMock = isMockEscalationId(esid);
+
+  const query = useQuery({
+    queryKey: ['escalation', esid],
+    queryFn: () => getEscalation(esid!),
+    enabled: !isMock,
+    refetchInterval: (q) => (q.state.data?.status === 'IN_PROGRESS' ? 5_000 : false),
+  });
+
+  const mockData = useMemo(
+    () => (isMock ? (MOCK_ESCALATIONS[esid ?? 'fall'] ?? MOCK_ESCALATIONS.fall) : undefined),
+    [isMock, esid]
+  );
+
+  if (isMock) {
+    return { data: mockData, detail: undefined, isMock: true, isLoading: false, isError: false };
+  }
+
+  return {
+    data: query.data ? mapToScreenData(query.data) : undefined,
+    detail: query.data,
+    isMock: false,
+    isLoading: query.isLoading,
+    isError: query.isError,
+  };
 }
