@@ -7,12 +7,15 @@ import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { useNotificationDeepLink } from '@/lib/notifications'; // side effect: setNotificationHandler 등록
+
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  useNotificationDeepLink();
 
   useEffect(() => {
     // 실제 세션 게이트(토큰 검증 → 분기)는 (auth)/splash.tsx (A-1)에서 처리한다.
