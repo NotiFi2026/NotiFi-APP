@@ -3,12 +3,14 @@
  * "결(Gyeol)" 디자인 언어 공용 컴포넌트 — 응급/경고/정상 풀스크린 상태 화면에서 공유.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Animated, Easing, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 export function SignalRibbon({ tint }: { tint: string }) {
-  const shift = useRef(new Animated.Value(0)).current;
+  // lazy useState = 최초 1회만 생성되는 안정적인 값.
+  // useRef(...).current 는 렌더 중 ref 접근이라 react-hooks/refs 위반 (reactCompiler 활성 상태).
+  const [shift] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     Animated.loop(

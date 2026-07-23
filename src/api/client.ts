@@ -29,7 +29,7 @@ apiClient.interceptors.request.use(async (config) => {
 });
 
 let isRefreshing = false;
-let pendingQueue: Array<(token: string | null) => void> = [];
+let pendingQueue: ((token: string | null) => void)[] = [];
 
 async function handleSessionExpired(originalError: unknown) {
   await clearTokens();

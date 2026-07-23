@@ -3,12 +3,14 @@
  * 응급/경고/정상 풀스크린 상태 화면에서 공유.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 
 export function BreathingDot({ color }: { color: string }) {
-  const scale = useRef(new Animated.Value(1)).current;
-  const opacity = useRef(new Animated.Value(0.6)).current;
+  // lazy useState = 최초 1회만 생성되는 안정적인 값.
+  // useRef(...).current 는 렌더 중 ref 접근이라 react-hooks/refs 위반 (reactCompiler 활성 상태).
+  const [scale] = useState(() => new Animated.Value(1));
+  const [opacity] = useState(() => new Animated.Value(0.6));
 
   useEffect(() => {
     Animated.loop(
