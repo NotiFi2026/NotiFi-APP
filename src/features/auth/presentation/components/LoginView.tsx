@@ -12,7 +12,7 @@ import { useRef, useState } from 'react';
 import { TextInput, View } from 'react-native';
 
 import { USE_MOCK_AUTH } from '@/config/env';
-import { ACCENT, RADIUS } from '@/config/theme';
+import { BRAND, RADIUS } from '@/config/theme';
 import { useLogin } from '@/features/auth/application/hooks/useLogin';
 import { authErrorMessage } from '@/features/auth/domain/services/authError';
 import { emailError } from '@/features/auth/domain/services/authValidation';
@@ -51,7 +51,7 @@ export function LoginView() {
         </Reveal>
         <Reveal index={2}>
           <Text variant="display">
-            <Text variant="display" style={{ color: ACCENT.base }}>
+            <Text variant="display" tone="brand">
               시간
             </Text>
             을 지켜봅니다
@@ -61,7 +61,7 @@ export function LoginView() {
 
       <Reveal index={3}>
         <View className="mt-7 flex-row">
-          <View className="w-[3px] rounded-full" style={{ backgroundColor: ACCENT.base }} />
+          <View className="w-[3px] rounded-full" style={{ backgroundColor: BRAND.base }} />
           <Text variant="body" tone="muted" className="ml-4 flex-1">
             떨어져 있어도 이상을 먼저 알 수 있게
           </Text>
@@ -140,6 +140,7 @@ export function LoginView() {
           <Button
             label="로그인"
             loadingLabel="로그인 중…"
+            trailingArrow
             onPress={submit}
             disabled={!canSubmit}
             loading={loginMutation.isPending}

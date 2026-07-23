@@ -7,10 +7,10 @@
  */
 
 import { router } from 'expo-router';
-import { useRef, useState } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
+import { useEffect, useRef, useState, type ComponentType } from 'react';
+import { Animated, Pressable, TextInput, View } from 'react-native';
 
-import { ACCENT, BRAND, RADIUS, SURFACE } from '@/config/theme';
+import { BRAND, INK, RADIUS, SURFACE } from '@/config/theme';
 import { USE_MOCK_AUTH } from '@/config/env';
 import { useSignup } from '@/features/auth/application/hooks/useSignup';
 import type { SessionUser } from '@/features/auth/application/store/authStore';
@@ -27,14 +27,125 @@ import { Button } from '@/shared/components/ui/Button';
 import { Reveal } from '@/shared/components/ui/Reveal';
 import { Text } from '@/shared/components/ui/Text';
 import { TextField } from '@/shared/components/ui/TextField';
-import { ArrowLeftIcon } from '@/shared/components/ui/icons';
+import {
+  ArrowLeftIcon,
+  CheckIcon,
+  PeopleGroupIcon,
+  PersonIcon,
+  type IconProps,
+} from '@/shared/components/ui/icons';
+import { useReduceMotion } from '@/shared/hooks/useReduceMotion';
 
 type Role = SessionUser['role'];
 
-const ROLE_OPTIONS: { value: Role; label: string; hint: string }[] = [
-  { value: 'GUARDIAN', label: '보호자', hint: '가족을 돌봅니다' },
-  { value: 'SOCIAL_WORKER', label: '사회복지사', hint: '여러 가구를 담당합니다' },
-];
+const ROLE_OPTIONS: { value: Role; label: string; hint: string; Glyph: ComponentType<IconProps> }[] =
+  [
+    { value: 'GUARDIAN', label: '보호자', hint: '가족을 돌봅니다', Glyph: PersonIcon },
+    { value: 'SOCIAL_WORKER', label: '사회복지사', hint: '여러 가구를 담당합니다', Glyph: PeopleGroupIcon },
+  ];
+
+/**
+ * 역할 카드 — 선택 상태를 스프링으로 전환한다.
+ * 색 보간을 피하려고 brand-soft 채움·청록 보더·인디케이터를 절대 위치 레이어로 겹쳐 두고
+ * opacity만 애니메이션한다(전부 네이티브 드라이버).
+ */
+function RoleCard({
+  option,
+  selected,
+  onPress,
+}: {
+  option: (typeof ROLE_OPTIONS)[number];
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const reduceMotion = useReduceMotion();
+  const [progress] = useState(() => new Animated.Value(selected ? 1 : 0));
+
+  useEffect(() => {
+    if (reduceMotion) {
+      progress.setValue(selected ? 1 : 0);
+      return;
+    }
+    const animation = Animated.spring(progress, {
+      toValue: selected ? 1 : 0,
+      speed: 16,
+      bounciness: 10,
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [progress, selected, reduceMotion]);
+
+  const { Glyph } = option;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="radio"
+      accessibilityState={{ selected }}
+      className="flex-1"
+    >
+      <Animated.View
+        className="overflow-hidden px-4 pb-4 pt-3.5"
+        style={{
+          borderRadius: RADIUS.surface,
+          backgroundColor: SURFACE.card,
+          borderWidth: 1,
+          borderColor: SURFACE.line,
+          transform: [{ scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.99, 1] }) }],
+        }}
+      >
+        {/* brand-soft 채움 + 청록 보더 레이어 — opacity로만 등장 */}
+        <Animated.View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderRadius: RADIUS.surface,
+            backgroundColor: BRAND.soft,
+            borderWidth: 1.5,
+            borderColor: BRAND.base,
+            opacity: progress,
+          }}
+        />
+
+        <View className="flex-row items-start justify-between">
+          <Glyph color={selected ? BRAND.base : INK.muted} />
+
+          {/* 인디케이터 — 미선택 링, 선택 시 청록 채움 + 흰 체크 */}
+          <View className="h-[22px] w-[22px] items-center justify-center">
+            <View
+              className="absolute h-[22px] w-[22px] rounded-full"
+              style={{ borderWidth: 1.5, borderColor: SURFACE.line }}
+            />
+            <Animated.View
+              className="absolute h-[22px] w-[22px] items-center justify-center rounded-full"
+              style={{
+                backgroundColor: BRAND.base,
+                opacity: progress,
+                transform: [
+                  { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) },
+                ],
+              }}
+            >
+              <CheckIcon size={14} color={INK.inverse} />
+            </Animated.View>
+          </View>
+        </View>
+
+        <Text variant="label" tone={selected ? 'brand' : 'base'} className="mt-3">
+          {option.label}
+        </Text>
+        <Text variant="caption" tone="muted" className="mt-1">
+          {option.hint}
+        </Text>
+      </Animated.View>
+    </Pressable>
+  );
+}
 
 function RoleSelector({ value, onChange }: { value: Role; onChange: (role: Role) => void }) {
   return (
@@ -43,31 +154,14 @@ function RoleSelector({ value, onChange }: { value: Role; onChange: (role: Role)
         역할
       </Text>
       <View className="flex-row gap-3">
-        {ROLE_OPTIONS.map((option) => {
-          const selected = option.value === value;
-          return (
-            <Pressable
-              key={option.value}
-              onPress={() => onChange(option.value)}
-              accessibilityRole="radio"
-              accessibilityState={{ selected }}
-              className="flex-1 px-4 py-3.5"
-              style={{
-                backgroundColor: selected ? BRAND.soft : SURFACE.card,
-                borderRadius: RADIUS.surface,
-                borderWidth: selected ? 1.5 : 1,
-                borderColor: selected ? BRAND.base : SURFACE.line,
-              }}
-            >
-              <Text variant="label" tone={selected ? 'brand' : 'base'}>
-                {option.label}
-              </Text>
-              <Text variant="caption" tone="muted" className="mt-1">
-                {option.hint}
-              </Text>
-            </Pressable>
-          );
-        })}
+        {ROLE_OPTIONS.map((option) => (
+          <RoleCard
+            key={option.value}
+            option={option}
+            selected={option.value === value}
+            onPress={() => onChange(option.value)}
+          />
+        ))}
       </View>
     </View>
   );
@@ -107,7 +201,7 @@ export function SignupView() {
 
       <Reveal index={0}>
         <Text variant="headline" className="mt-6">
-          <Text variant="headline" style={{ color: ACCENT.base }}>
+          <Text variant="headline" tone="brand">
             계정
           </Text>
           을 만들어요
@@ -193,6 +287,7 @@ export function SignupView() {
           <Button
             label="가입하고 시작하기"
             loadingLabel="가입 중…"
+            trailingArrow
             onPress={submit}
             disabled={!canSubmit}
             loading={signupMutation.isPending}

@@ -20,7 +20,7 @@ export type TextVariant =
   | 'caption'
   | 'eyebrow';
 
-export type TextTone = 'base' | 'muted' | 'brand' | 'accent' | 'inverse' | 'danger' | 'info';
+export type TextTone = 'base' | 'muted' | 'brand' | 'inverse' | 'danger' | 'info';
 
 const VARIANT_CLASS: Record<TextVariant, string> = {
   display: 'text-[44px] leading-[54px] tracking-[-1.4px]',
@@ -48,7 +48,6 @@ const TONE_CLASS: Record<TextTone, string> = {
   base: 'text-ink',
   muted: 'text-ink-muted',
   brand: 'text-brand',
-  accent: 'text-accent',
   inverse: 'text-ink-inverse',
   danger: 'text-risk-danger',
   info: 'text-info',

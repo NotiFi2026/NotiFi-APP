@@ -58,6 +58,20 @@ export function ArrowLeftIcon({ size = 22, color = INK.base }: IconProps) {
   );
 }
 
+export function ArrowRightIcon({ size = 22, color = INK.base }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M5 12h13M12.5 5.5 19 12l-6.5 6.5"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 export function CheckIcon({ size = 16, color = INK.base }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -67,6 +81,42 @@ export function CheckIcon({ size = 16, color = INK.base }: IconProps) {
         strokeWidth={2.6}
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/** 보호자 — 사람 하나 */
+export function PersonIcon({ size = 20, color = INK.muted }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx={12} cy={7.5} r={3.4} stroke={color} strokeWidth={STROKE} />
+      <Path
+        d="M5.5 19.5a6.5 6.5 0 0 1 13 0"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+/** 사회복지사 — 사람 둘 */
+export function PeopleGroupIcon({ size = 20, color = INK.muted }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx={9} cy={8} r={3} stroke={color} strokeWidth={STROKE} />
+      <Path
+        d="M3.5 19a5.5 5.5 0 0 1 11 0"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M16.2 5.4a3 3 0 0 1 0 5.2M17 14.2a5.5 5.5 0 0 1 3.5 4.8"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
       />
     </Svg>
   );
