@@ -7,24 +7,30 @@
  */
 
 export const SURFACE = {
-  canvas: '#FBFBFA',
-  card: '#FFFFFF',
-  sunk: '#F7F6F3',
-  line: '#EAEAEA',
-  disabled: '#EFEEEB',
+  canvas: '#F8F4EF',
+  card: '#FFFCF9',
+  sunk: '#F1EAE2',
+  line: '#E6DDD3',
+  disabled: '#EAE3DB',
 } as const;
 
 export const INK = {
-  base: '#111111',
-  muted: '#6B6A66',
+  base: '#2E2822', // 순흑 대신 웜 브라운 차콜 (13.5:1)
+  muted: '#6E655E', // 5.4:1
   inverse: '#FFFFFF',
 } as const;
 
 /** 브랜드 — 주 조작·로고·포커스·체크. 위험 3색은 절대 입지 않는다. */
 export const BRAND = {
-  base: '#0B4A40',
-  press: '#06312A',
-  soft: '#E8F1EE',
+  base: '#356B57', // 세이지 포레스트. 흰 글자와 6.2:1
+  press: '#26523F',
+  soft: '#E3EFE7',
+} as const;
+
+/** 배경 광량 전용. 어떤 컴포넌트도 이 색을 입지 않으므로 상태색과 혼동되지 않는다. */
+export const AMBIENT = {
+  sage: '#356B57',
+  apricot: '#D9A07A',
 } as const;
 
 /** 정보 안내 전용. 상태색이 아니다. */
@@ -35,8 +41,8 @@ export const INFO = {
 
 /** 반경 — 조작 요소는 날카롭게, 면은 조금 부드럽게 */
 export const RADIUS = {
-  control: 6,
-  surface: 10,
+  control: 14,
+  surface: 18,
 } as const;
 
 /**

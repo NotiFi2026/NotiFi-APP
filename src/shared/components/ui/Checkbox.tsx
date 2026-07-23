@@ -57,7 +57,7 @@ export function Checkbox({ checked, onChange, label, disabled = false }: Checkbo
         style={{
           width: BOX_SIZE,
           height: BOX_SIZE,
-          borderRadius: 6,
+          borderRadius: 8,
           borderWidth: 1.5,
           borderColor: checked ? BRAND.base : SURFACE.line,
           backgroundColor: SURFACE.card,
