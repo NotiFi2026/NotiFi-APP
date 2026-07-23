@@ -44,6 +44,8 @@ yarn-error.*
 # 프로젝트 문서·Claude 컨텍스트 — 저장소 비공개 유지
 /docs
 /CLAUDE.md
+/PRODUCT.md
+/DESIGN.md
 .claude/
 
 # FCM 시크릿
