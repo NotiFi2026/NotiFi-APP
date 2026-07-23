@@ -11,8 +11,11 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
+import type { SessionUser } from '@/features/auth/application/store/authStore';
+
 const ACCESS_TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
+const SESSION_USER_KEY = 'sessionUser';
 
 const isWeb = Platform.OS === 'web';
 
@@ -36,4 +39,26 @@ export async function clearTokens(): Promise<void> {
   if (isWeb) return;
   await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
   await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+  await SecureStore.deleteItemAsync(SESSION_USER_KEY);
+}
+
+/**
+ * 로그인 사용자 정보도 함께 보관한다.
+ * A3 토큰 갱신 응답에는 user가 없고 api-spec에 /me 조회가 없어서,
+ * 스플래시(A-1)에서 세션을 복원할 때 이름·역할을 되살릴 방법이 이것뿐이다.
+ */
+export async function setSessionUser(user: SessionUser): Promise<void> {
+  if (isWeb) return;
+  await SecureStore.setItemAsync(SESSION_USER_KEY, JSON.stringify(user));
+}
+
+export async function getSessionUser(): Promise<SessionUser | null> {
+  if (isWeb) return null;
+  const raw = await SecureStore.getItemAsync(SESSION_USER_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as SessionUser;
+  } catch {
+    return null;
+  }
 }
