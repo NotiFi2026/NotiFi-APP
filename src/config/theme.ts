@@ -20,11 +20,26 @@ export const INK = {
   inverse: '#FFFFFF',
 } as const;
 
-/** 브랜드 — 주 조작·로고·포커스·체크. 위험 3색은 절대 입지 않는다. */
+/** 브랜드 — 중간 톤 세이지. 역할 선택 보더·포커스 링·본문 강조 등. */
 export const BRAND = {
   base: '#356B57', // 세이지 포레스트. 흰 글자와 6.2:1
   press: '#26523F',
   soft: '#E3EFE7',
+} as const;
+
+/** 진한 청록 — 상단 컬러 패널과 주 버튼. 큰 색면으로 과감히 쓴다. */
+export const TEAL = {
+  deep: '#114A43', // 흰 글자와 8.6:1
+  press: '#0C3833',
+} as const;
+
+/** 부드러운 깊이. 배경 색조로 틴트해 무겁지 않게 (craft-floor: 색조 있는 그림자). */
+export const SHADOW_SOFT = {
+  shadowColor: '#16302B',
+  shadowOpacity: 0.12,
+  shadowRadius: 22,
+  shadowOffset: { width: 0, height: 12 },
+  elevation: 6,
 } as const;
 
 /**

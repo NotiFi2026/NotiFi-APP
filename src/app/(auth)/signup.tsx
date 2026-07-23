@@ -1,28 +1,10 @@
 /**
  * A-3. 회원가입 — ui-spec.md A-3.
- * 로그인 화면과 같은 세계를 쓰되, 폼이 길어 로고 대신 뒤로가기와 제목으로 시작한다.
+ * 로그인과 같은 상단 청록 패널 + 흰 폼 카드. SignupView가 패널·스크롤을 직접 구성한다.
  */
 
-import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-
 import { SignupView } from '@/features/auth/presentation/components/SignupView';
-import { Screen } from '@/shared/components/layout/Screen';
 
 export default function SignupScreen() {
-  return (
-    <Screen gutter={false}>
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
-        >
-          <SignupView />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </Screen>
-  );
+  return <SignupView />;
 }
