@@ -1,22 +1,73 @@
 /**
- * 도메인 시각 토큰 — ui-spec.md 1-1(위험도 시각 체계), 1-4(event_type 라벨/아이콘) 기준.
- * tailwind.config.js의 `risk.*` 색상과 값이 동일해야 한다 (className 사용 시 `bg-risk-safe` 등으로 매핑).
+ * 시각 토큰 — DESIGN.md와 ui-spec.md 1-1·1-4 기준.
+ * tailwind.config.js와 값이 동일해야 한다 (className 사용 시 `bg-canvas`, `text-ink` 등으로 매핑).
+ * 여기 있는 리터럴은 className으로 표현할 수 없는 곳(SVG fill/stroke, 네이티브 색 등) 전용이다.
+ *
+ * 웜 모노크롬. 색은 희소 자원이고 의미가 있을 때만 쓴다.
  */
+
+export const SURFACE = {
+  canvas: '#FBFBFA',
+  card: '#FFFFFF',
+  sunk: '#F7F6F3',
+  line: '#EAEAEA',
+  disabled: '#EFEEEB',
+} as const;
+
+export const INK = {
+  base: '#111111',
+  muted: '#6B6A66',
+  inverse: '#FFFFFF',
+} as const;
+
+/** 브랜드 — 주 조작·로고·포커스·체크. 위험 3색은 절대 입지 않는다. */
+export const BRAND = {
+  base: '#0B4A40',
+  press: '#06312A',
+  soft: '#E8F1EE',
+} as const;
+
+/** 정보 안내 전용. 상태색이 아니다. */
+export const INFO = {
+  base: '#1F6C9F',
+  surface: '#E1F3FE',
+} as const;
+
+/** 반경 — 조작 요소는 날카롭게, 면은 조금 부드럽게 */
+export const RADIUS = {
+  control: 6,
+  surface: 10,
+} as const;
+
+/**
+ * Gothic A1 — 한글 UI 서체. React Native에서는 fontWeight가 커스텀 폰트에 적용되지 않으므로
+ * 굵기마다 별도 fontFamily를 지정해야 한다.
+ */
+export const FONT = {
+  regular: 'GothicA1_400Regular',
+  medium: 'GothicA1_500Medium',
+  bold: 'GothicA1_700Bold',
+} as const;
 
 export type RiskLevel = 'SAFE' | 'WARNING' | 'DANGER' | null;
 
+/**
+ * 탈채도 파스텔 한 쌍. ui-spec 1-1의 원래 색(#22C55E 등)은 밝은 지면에서
+ * 2.2:1까지 떨어져 글자로 쓸 수 없다. 의미(4단계·중복 부호화)는 그대로다.
+ */
 export const RISK_COLORS: Record<'SAFE' | 'WARNING' | 'DANGER' | 'UNKNOWN', string> = {
-  SAFE: '#22C55E',
-  WARNING: '#EAB308',
-  DANGER: '#EF4444',
-  UNKNOWN: '#9CA3AF', // risk_level === null (미평가)
+  SAFE: '#346538',
+  WARNING: '#956400',
+  DANGER: '#9F2F2D',
+  UNKNOWN: '#6B6A66', // risk_level === null (미평가)
 };
 
-export const RISK_LABELS: Record<'SAFE' | 'WARNING' | 'DANGER' | 'UNKNOWN', string> = {
-  SAFE: '안전',
-  WARNING: '주의',
-  DANGER: '위험',
-  UNKNOWN: '미확인',
+/** 위 색과 짝이 되는 칩 배경 */
+export const RISK_SURFACES: Record<'SAFE' | 'WARNING' | 'DANGER' | 'UNKNOWN', string> = {
+  SAFE: '#EDF3EC',
+  WARNING: '#FBF3DB',
+  DANGER: '#FDEBEC',
+  UNKNOWN: '#F7F6F3',
 };
 
 export type EventType =
@@ -26,6 +77,13 @@ export type EventType =
   | 'ANOMALY'
   | 'SENSOR_ERROR'
   | 'NORMAL';
+
+export const RISK_LABELS: Record<'SAFE' | 'WARNING' | 'DANGER' | 'UNKNOWN', string> = {
+  SAFE: '안전',
+  WARNING: '주의',
+  DANGER: '위험',
+  UNKNOWN: '미확인',
+};
 
 export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   FALL: '낙상 감지',
