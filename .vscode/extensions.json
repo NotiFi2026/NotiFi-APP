@@ -1,1 +1,13 @@
-{ "recommendations": ["expo.vscode-expo-tools"] }
+{
+  "recommendations": [
+    // app.json/eas.json 스키마 검증·자동완성 (Expo 공식)
+    "expo.vscode-expo-tools",
+    // NativeWind className 자동완성·색상 미리보기 — settings.json의 tailwindCSS.* 설정과 짝
+    "bradlc.vscode-tailwindcss",
+    // eslint.config.js 기반 인라인 린트
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    // 에러를 코드 옆에 바로 표시
+    "usernamehw.errorlens"
+  ]
+}
