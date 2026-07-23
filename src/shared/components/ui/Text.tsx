@@ -20,11 +20,11 @@ export type TextVariant =
   | 'caption'
   | 'eyebrow';
 
-export type TextTone = 'base' | 'muted' | 'brand' | 'inverse' | 'danger' | 'info';
+export type TextTone = 'base' | 'muted' | 'brand' | 'accent' | 'inverse' | 'danger' | 'info';
 
 const VARIANT_CLASS: Record<TextVariant, string> = {
-  display: 'text-[36px] leading-[43px] tracking-[-0.9px]',
-  headline: 'text-[27px] leading-[34px] tracking-[-0.5px]',
+  display: 'text-[44px] leading-[54px] tracking-[-1.4px]',
+  headline: 'text-[32px] leading-[42px] tracking-[-0.8px]',
   title: 'text-[20px] leading-[28px] tracking-[-0.3px]',
   body: 'text-[16px] leading-[26px]',
   bodySmall: 'text-[14px] leading-[22px]',
@@ -34,8 +34,8 @@ const VARIANT_CLASS: Record<TextVariant, string> = {
 };
 
 const VARIANT_FONT: Record<TextVariant, string> = {
-  display: FONT.bold,
-  headline: FONT.bold,
+  display: FONT.serifBold, // 명조 대비 헤드라인 (Hahmlet)
+  headline: FONT.serifBold,
   title: FONT.medium,
   body: FONT.regular,
   bodySmall: FONT.regular,
@@ -48,6 +48,7 @@ const TONE_CLASS: Record<TextTone, string> = {
   base: 'text-ink',
   muted: 'text-ink-muted',
   brand: 'text-brand',
+  accent: 'text-accent',
   inverse: 'text-ink-inverse',
   danger: 'text-risk-danger',
   info: 'text-info',

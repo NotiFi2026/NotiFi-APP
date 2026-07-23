@@ -71,24 +71,3 @@ export function CheckIcon({ size = 16, color = INK.base }: IconProps) {
     </Svg>
   );
 }
-
-/** 프라이버시 안내 문구 옆에 붙는다 — 방패 안에 신호 한 겹 */
-export function ShieldSignalIcon({ size = 18, color = INK.muted }: IconProps) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M12 2.8 20 6v5.6c0 4.6-3.3 8.1-8 9.6-4.7-1.5-8-5-8-9.6V6l8-3.2Z"
-        stroke={color}
-        strokeWidth={STROKE}
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M8.6 12.4a4.8 4.8 0 0 1 6.8 0"
-        stroke={color}
-        strokeWidth={STROKE}
-        strokeLinecap="round"
-      />
-      <Circle cx={12} cy={15.4} r={1.2} fill={color} />
-    </Svg>
-  );
-}

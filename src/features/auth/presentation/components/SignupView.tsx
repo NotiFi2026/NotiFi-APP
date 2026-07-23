@@ -10,7 +10,7 @@ import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 
-import { BRAND, RADIUS, SURFACE } from '@/config/theme';
+import { ACCENT, BRAND, RADIUS, SURFACE } from '@/config/theme';
 import { USE_MOCK_AUTH } from '@/config/env';
 import { useSignup } from '@/features/auth/application/hooks/useSignup';
 import type { SessionUser } from '@/features/auth/application/store/authStore';
@@ -106,10 +106,13 @@ export function SignupView() {
       </Pressable>
 
       <Reveal index={0}>
-        <Text variant="headline" className="mt-5">
-          계정 만들기
+        <Text variant="headline" className="mt-6">
+          <Text variant="headline" style={{ color: ACCENT.base }}>
+            계정
+          </Text>
+          을 만들어요
         </Text>
-        <Text variant="body" tone="muted" className="mt-3">
+        <Text variant="body" tone="muted" className="mt-4">
           보호자와 사회복지사가 쓰는 계정입니다.{'\n'}노인 본인은 로그인하지 않습니다.
         </Text>
       </Reveal>

@@ -2,9 +2,9 @@
  * A-2 로그인 본체 — ui-spec.md A-2.
  * 자동 로그인 체크박스는 명세에 없는 추가 기능이다. 명세 갱신 대상.
  *
- * 구성은 의도적으로 비대칭이다 — 안내 카드는 오른쪽 여백을, 하단 문구 카드는 왼쪽 여백을
- * 남겨 수직 스택의 단조로움을 깬다. 다만 **입력 폼 자체는 대칭을 지킨다.**
- * 과업을 수행하는 화면에서 입력 흐름을 흐트러뜨리면 안 되기 때문이다.
+ * 헤드라인은 명조(Hahmlet)로 두 줄을 각각 시차 등장시키고, 핵심어 "시간"에만
+ * 테라코타를 얹어 시선을 꽂는다. 세이지는 조작색, 테라코타는 표현색으로 역할이 갈린다.
+ * 여백은 크게 둔다(VISUAL_DENSITY 2) — 요소를 채우지 않고 숨 쉬게 한다.
  */
 
 import { router } from 'expo-router';
@@ -12,7 +12,7 @@ import { useRef, useState } from 'react';
 import { TextInput, View } from 'react-native';
 
 import { USE_MOCK_AUTH } from '@/config/env';
-import { BRAND, RADIUS } from '@/config/theme';
+import { ACCENT, RADIUS } from '@/config/theme';
 import { useLogin } from '@/features/auth/application/hooks/useLogin';
 import { authErrorMessage } from '@/features/auth/domain/services/authError';
 import { emailError } from '@/features/auth/domain/services/authValidation';
@@ -23,7 +23,6 @@ import { Logo } from '@/shared/components/ui/Logo';
 import { Reveal } from '@/shared/components/ui/Reveal';
 import { Text } from '@/shared/components/ui/Text';
 import { TextField } from '@/shared/components/ui/TextField';
-import { ShieldSignalIcon } from '@/shared/components/ui/icons';
 
 export function LoginView() {
   const [email, setEmail] = useState('');
@@ -40,19 +39,29 @@ export function LoginView() {
   };
 
   return (
-    <View className="flex-1 px-6 pt-8">
+    <View className="flex-1 px-6 pt-10">
       <Reveal index={0}>
         <Logo size={38} />
       </Reveal>
 
-      <Reveal index={1}>
-        <Text variant="display" className="mt-10">
-          집에서 지내는{'\n'}시간을 지켜봅니다
-        </Text>
+      {/* 헤드라인 — 명조 두 줄을 줄 단위로 시차 등장 (MOTION 9) */}
+      <View className="mt-14">
+        <Reveal index={1}>
+          <Text variant="display">집에서 지내는</Text>
+        </Reveal>
+        <Reveal index={2}>
+          <Text variant="display">
+            <Text variant="display" style={{ color: ACCENT.base }}>
+              시간
+            </Text>
+            을 지켜봅니다
+          </Text>
+        </Reveal>
+      </View>
 
-        {/* 브랜드 색 세로 규선 — 부제를 들여쓰면서 색을 한 번 더 등장시킨다 */}
-        <View className="mt-5 flex-row">
-          <View className="w-[3px] rounded-full" style={{ backgroundColor: BRAND.base }} />
+      <Reveal index={3}>
+        <View className="mt-7 flex-row">
+          <View className="w-[3px] rounded-full" style={{ backgroundColor: ACCENT.base }} />
           <Text variant="body" tone="muted" className="ml-4 flex-1">
             떨어져 있어도 이상을 먼저 알 수 있게
           </Text>
@@ -60,9 +69,9 @@ export function LoginView() {
       </Reveal>
 
       {USE_MOCK_AUTH ? (
-        <Reveal index={2}>
+        <Reveal index={4}>
           <View
-            className="mr-10 mt-8 flex-row items-center gap-3 bg-surface px-4 py-3"
+            className="mr-10 mt-9 flex-row items-center gap-3 bg-surface px-4 py-3"
             style={{ borderRadius: RADIUS.surface }}
           >
             <Badge label="Mock" tone="info" />
@@ -73,8 +82,8 @@ export function LoginView() {
         </Reveal>
       ) : null}
 
-      <Reveal index={3}>
-        <View className="mt-9 gap-5">
+      <Reveal index={5}>
+        <View className="mt-10 gap-6">
           <TextField
             label="이메일"
             value={email}
@@ -107,8 +116,8 @@ export function LoginView() {
         </View>
       </Reveal>
 
-      <Reveal index={4}>
-        <View className="mt-3">
+      <Reveal index={6}>
+        <View className="mt-4">
           <Checkbox
             checked={remember}
             onChange={setRemember}
@@ -126,8 +135,8 @@ export function LoginView() {
         </Reveal>
       ) : null}
 
-      <Reveal index={5}>
-        <View className="mt-6">
+      <Reveal index={7}>
+        <View className="mt-8">
           <Button
             label="로그인"
             loadingLabel="로그인 중…"
@@ -137,7 +146,7 @@ export function LoginView() {
           />
         </View>
 
-        <View className="mt-1 flex-row items-center justify-center">
+        <View className="mt-2 flex-row items-center justify-center">
           <Text variant="bodySmall" tone="muted">
             계정이 없으신가요?
           </Text>
@@ -147,20 +156,6 @@ export function LoginView() {
             onPress={() => router.push('/(auth)/signup')}
             disabled={loginMutation.isPending}
           />
-        </View>
-      </Reveal>
-
-      {/* 여백을 장식이 아니라 제품의 실제 차별점으로 채운다 */}
-      <View className="min-h-[24px] flex-1" />
-      <Reveal index={6}>
-        <View
-          className="mb-3 ml-12 flex-row items-center bg-brand-soft px-4 py-3.5"
-          style={{ borderRadius: RADIUS.surface }}
-        >
-          <ShieldSignalIcon color={BRAND.base} />
-          <Text variant="caption" tone="brand" className="ml-2 flex-1">
-            카메라 없이 WiFi 신호로만 감지합니다
-          </Text>
         </View>
       </Reveal>
     </View>

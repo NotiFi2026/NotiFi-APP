@@ -9,8 +9,8 @@ import { Animated } from 'react-native';
 
 import { useReduceMotion } from '@/shared/hooks/useReduceMotion';
 
-const STAGGER_MS = 90;
-const RISE_PX = 16;
+const STAGGER_MS = 110;
+const RISE_PX = 22;
 
 export interface RevealProps {
   children: ReactNode;
@@ -34,8 +34,8 @@ export function Reveal({ children, index = 0, className }: RevealProps) {
       Animated.delay(index * STAGGER_MS),
       Animated.spring(progress, {
         toValue: 1,
-        speed: 12,
-        bounciness: 5,
+        speed: 11,
+        bounciness: 7,
         useNativeDriver: true,
       }),
     ]);

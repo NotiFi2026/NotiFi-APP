@@ -27,7 +27,17 @@ export const BRAND = {
   soft: '#E3EFE7',
 } as const;
 
-/** 배경 광량 전용. 어떤 컴포넌트도 이 색을 입지 않으므로 상태색과 혼동되지 않는다. */
+/**
+ * 보조 강조색 — 헤드라인 핵심어, 아이콘 포인트, 강조 규선.
+ * 세이지가 조작을 맡고 테라코타가 표현을 맡아 역할이 겹치지 않는다.
+ * 위험 3색(적/황)과 색상환이 달라 혼동되지 않는다.
+ */
+export const ACCENT = {
+  base: '#B4552D', // 테라코타. 캔버스 대비 5.0:1
+  soft: '#F3E0D3',
+} as const;
+
+/** 배경 광량 전용. 어떤 컴포넌트도 이 색을 입지 않는다. */
 export const AMBIENT = {
   sage: '#356B57',
   apricot: '#D9A07A',
@@ -53,6 +63,9 @@ export const FONT = {
   regular: 'GothicA1_400Regular',
   medium: 'GothicA1_500Medium',
   bold: 'GothicA1_700Bold',
+  // 헤드라인 전용 명조 대비 서체 (Hahmlet). display·headline에만 쓴다.
+  serifSemi: 'Hahmlet_600SemiBold',
+  serifBold: 'Hahmlet_700Bold',
 } as const;
 
 export type RiskLevel = 'SAFE' | 'WARNING' | 'DANGER' | null;

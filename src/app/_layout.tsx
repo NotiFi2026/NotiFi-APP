@@ -1,10 +1,12 @@
 import '@/global.css';
 
-// 굵기별 경로로 직접 가져온다. 패키지 루트에서 import하면 쓰지 않는 굵기 6종까지
+// 굵기별 경로로 직접 가져온다. 패키지 루트에서 import하면 쓰지 않는 굵기까지
 // 번들에 딸려 들어가 한글 폰트만 20MB가 된다 (실측).
 import { GothicA1_400Regular } from '@expo-google-fonts/gothic-a1/400Regular';
 import { GothicA1_500Medium } from '@expo-google-fonts/gothic-a1/500Medium';
 import { GothicA1_700Bold } from '@expo-google-fonts/gothic-a1/700Bold';
+import { Hahmlet_600SemiBold } from '@expo-google-fonts/hahmlet/600SemiBold';
+import { Hahmlet_700Bold } from '@expo-google-fonts/hahmlet/700Bold';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
@@ -45,6 +47,8 @@ export default function RootLayout() {
     GothicA1_400Regular,
     GothicA1_500Medium,
     GothicA1_700Bold,
+    Hahmlet_600SemiBold,
+    Hahmlet_700Bold,
   });
 
   useEffect(() => {
