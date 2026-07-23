@@ -1,6 +1,10 @@
 /**
  * A-2 로그인 본체 — ui-spec.md A-2.
  * 자동 로그인 체크박스는 명세에 없는 추가 기능이다. 명세 갱신 대상.
+ *
+ * 구성은 의도적으로 비대칭이다 — 안내 카드는 오른쪽 여백을, 하단 문구 카드는 왼쪽 여백을
+ * 남겨 수직 스택의 단조로움을 깬다. 다만 **입력 폼 자체는 대칭을 지킨다.**
+ * 과업을 수행하는 화면에서 입력 흐름을 흐트러뜨리면 안 되기 때문이다.
  */
 
 import { router } from 'expo-router';
@@ -8,7 +12,7 @@ import { useRef, useState } from 'react';
 import { TextInput, View } from 'react-native';
 
 import { USE_MOCK_AUTH } from '@/config/env';
-import { BRAND } from '@/config/theme';
+import { BRAND, RADIUS } from '@/config/theme';
 import { useLogin } from '@/features/auth/application/hooks/useLogin';
 import { authErrorMessage } from '@/features/auth/domain/services/authError';
 import { emailError } from '@/features/auth/domain/services/authValidation';
@@ -45,14 +49,22 @@ export function LoginView() {
         <Text variant="display" className="mt-10">
           집에서 지내는{'\n'}시간을 지켜봅니다
         </Text>
-        <Text variant="body" tone="muted" className="mt-4">
-          떨어져 있어도 이상을 먼저 알 수 있게
-        </Text>
+
+        {/* 브랜드 색 세로 규선 — 부제를 들여쓰면서 색을 한 번 더 등장시킨다 */}
+        <View className="mt-5 flex-row">
+          <View className="w-[3px] rounded-full" style={{ backgroundColor: BRAND.base }} />
+          <Text variant="body" tone="muted" className="ml-4 flex-1">
+            떨어져 있어도 이상을 먼저 알 수 있게
+          </Text>
+        </View>
       </Reveal>
 
       {USE_MOCK_AUTH ? (
         <Reveal index={2}>
-          <View className="mt-8 flex-row items-center gap-3">
+          <View
+            className="mr-10 mt-8 flex-row items-center gap-3 bg-surface px-4 py-3"
+            style={{ borderRadius: RADIUS.surface }}
+          >
             <Badge label="Mock" tone="info" />
             <Text variant="bodySmall" tone="muted" className="flex-1">
               서버 미연결 상태입니다. 어떤 계정으로도 들어갈 수 있어요.
@@ -141,9 +153,12 @@ export function LoginView() {
       {/* 여백을 장식이 아니라 제품의 실제 차별점으로 채운다 */}
       <View className="min-h-[24px] flex-1" />
       <Reveal index={6}>
-        <View className="mb-3 flex-row items-center justify-center rounded-[10px] bg-brand-soft px-4 py-3">
+        <View
+          className="mb-3 ml-12 flex-row items-center bg-brand-soft px-4 py-3.5"
+          style={{ borderRadius: RADIUS.surface }}
+        >
           <ShieldSignalIcon color={BRAND.base} />
-          <Text variant="caption" tone="brand" className="ml-2">
+          <Text variant="caption" tone="brand" className="ml-2 flex-1">
             카메라 없이 WiFi 신호로만 감지합니다
           </Text>
         </View>

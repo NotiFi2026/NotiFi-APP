@@ -116,7 +116,10 @@ export function SignupView() {
 
       {USE_MOCK_AUTH ? (
         <Reveal index={1}>
-          <View className="mt-7 flex-row items-center gap-3">
+          <View
+            className="mr-10 mt-7 flex-row items-center gap-3 bg-surface px-4 py-3"
+            style={{ borderRadius: RADIUS.surface }}
+          >
             <Badge label="Mock" tone="info" />
             <Text variant="bodySmall" tone="muted" className="flex-1">
               서버 미연결 상태입니다. 실제로 계정이 만들어지지 않습니다.
