@@ -72,6 +72,17 @@ export function CheckIcon({ size = 16, color = INK.base }: IconProps) {
   );
 }
 
+/** 경고 — 원 안 느낌표. 폼 알림 배너에 쓴다. */
+export function AlertIcon({ size = 18, color = INK.base }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx={12} cy={12} r={9} stroke={color} strokeWidth={STROKE} />
+      <Path d="M12 7.5V13" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+      <Circle cx={12} cy={16.3} r={1.1} fill={color} />
+    </Svg>
+  );
+}
+
 /** 보호자 — 사람 하나 */
 export function PersonIcon({ size = 20, color = INK.muted }: IconProps) {
   return (

@@ -13,12 +13,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { USE_MOCK_AUTH } from '@/config/env';
 import { RADIUS, SHADOW_SOFT, TEAL } from '@/config/theme';
 import { useLogin } from '@/features/auth/application/hooks/useLogin';
-import { authErrorMessage } from '@/features/auth/domain/services/authError';
+import { authErrorField, authErrorMessage } from '@/features/auth/domain/services/authError';
 import { emailError, isValidEmail } from '@/features/auth/domain/services/authValidation';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
 import { Checkbox } from '@/shared/components/ui/Checkbox';
-import { Collapse } from '@/shared/components/ui/Collapse';
+import { FormAlert } from '@/shared/components/ui/FormAlert';
 import { Logo } from '@/shared/components/ui/Logo';
 import { Reveal } from '@/shared/components/ui/Reveal';
 import { Text } from '@/shared/components/ui/Text';
@@ -33,6 +33,15 @@ export function LoginView() {
   const loginMutation = useLogin();
 
   const canSubmit = email.trim().length > 0 && password.length > 0 && !loginMutation.isPending;
+
+  // 서버 오류의 원인 필드. 인증 실패면 이메일·비밀번호 둘 다 링으로 지목한다.
+  const errorField = loginMutation.isError ? authErrorField(loginMutation.error) : null;
+  const credentialsInvalid = errorField === 'credentials';
+
+  // 입력을 고치면 지난 제출 오류(배너·링)를 즉시 걷어낸다 — 안 사라지던 문제 해결.
+  const clearSubmitError = () => {
+    if (loginMutation.isError) loginMutation.reset();
+  };
 
   const submit = () => {
     if (!canSubmit) return;
@@ -98,7 +107,10 @@ export function LoginView() {
                   <TextField
                     label="이메일"
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={(v) => {
+                      setEmail(v);
+                      clearSubmitError();
+                    }}
                     placeholder="you@example.com"
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -109,13 +121,17 @@ export function LoginView() {
                     editable={!loginMutation.isPending}
                     error={emailError(email)}
                     valid={isValidEmail(email)}
+                    invalid={credentialsInvalid}
                   />
 
                   <TextField
                     label="비밀번호"
                     inputRef={passwordRef}
                     value={password}
-                    onChangeText={setPassword}
+                    onChangeText={(v) => {
+                      setPassword(v);
+                      clearSubmitError();
+                    }}
                     placeholder="비밀번호를 입력하세요"
                     secure
                     autoCapitalize="none"
@@ -124,6 +140,7 @@ export function LoginView() {
                     returnKeyType="go"
                     onSubmitEditing={submit}
                     editable={!loginMutation.isPending}
+                    invalid={credentialsInvalid}
                   />
                 </View>
               </Reveal>
@@ -139,11 +156,11 @@ export function LoginView() {
                 </View>
               </Reveal>
 
-              <Collapse visible={loginMutation.isError}>
-                <Text variant="bodySmall" tone="danger" className="pt-2">
-                  {loginMutation.error ? authErrorMessage(loginMutation.error) : ''}
-                </Text>
-              </Collapse>
+              <FormAlert
+                visible={loginMutation.isError}
+                message={loginMutation.error ? authErrorMessage(loginMutation.error) : ''}
+                gap={16}
+              />
 
               <Reveal index={6}>
                 <View className="mt-6">

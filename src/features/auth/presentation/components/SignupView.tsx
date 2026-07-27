@@ -23,7 +23,7 @@ import { USE_MOCK_AUTH } from '@/config/env';
 import { BRAND, INK, RADIUS, SHADOW_SOFT, SURFACE, TEAL } from '@/config/theme';
 import { useSignup } from '@/features/auth/application/hooks/useSignup';
 import type { SessionUser } from '@/features/auth/application/store/authStore';
-import { authErrorMessage } from '@/features/auth/domain/services/authError';
+import { authErrorField, authErrorMessage } from '@/features/auth/domain/services/authError';
 import {
   PASSWORD_MIN_LENGTH,
   emailError,
@@ -33,7 +33,7 @@ import {
 } from '@/features/auth/domain/services/authValidation';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
-import { Collapse } from '@/shared/components/ui/Collapse';
+import { FormAlert } from '@/shared/components/ui/FormAlert';
 import { Reveal } from '@/shared/components/ui/Reveal';
 import { Text } from '@/shared/components/ui/Text';
 import { TextField } from '@/shared/components/ui/TextField';
@@ -250,6 +250,15 @@ export function SignupView() {
     isValidPassword(password) &&
     !signupMutation.isPending;
 
+  // 서버 오류의 원인 필드. 이미 쓰는 이메일 등은 이메일 칸을 링으로 지목한다.
+  const errorField = signupMutation.isError ? authErrorField(signupMutation.error) : null;
+  const emailInvalid = errorField === 'email' || errorField === 'credentials';
+
+  // 입력을 고치면 지난 제출 오류(배너·링)를 즉시 걷어낸다.
+  const clearSubmitError = () => {
+    if (signupMutation.isError) signupMutation.reset();
+  };
+
   const submit = () => {
     if (!canSubmit) return;
     signupMutation.mutate({ name, email, password, role });
@@ -309,7 +318,10 @@ export function SignupView() {
                   <TextField
                     label="이름"
                     value={name}
-                    onChangeText={setName}
+                    onChangeText={(v) => {
+                      setName(v);
+                      clearSubmitError();
+                    }}
                     placeholder="홍길동"
                     autoComplete="name"
                     textContentType="name"
@@ -322,7 +334,10 @@ export function SignupView() {
                     label="이메일"
                     inputRef={emailRef}
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={(v) => {
+                      setEmail(v);
+                      clearSubmitError();
+                    }}
                     placeholder="you@example.com"
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -333,6 +348,7 @@ export function SignupView() {
                     editable={!signupMutation.isPending}
                     error={emailError(email)}
                     valid={isValidEmail(email)}
+                    invalid={emailInvalid}
                   />
 
                   <TextField
@@ -340,7 +356,10 @@ export function SignupView() {
                     helper={`${PASSWORD_MIN_LENGTH}자 이상 입력해 주세요.`}
                     inputRef={passwordRef}
                     value={password}
-                    onChangeText={setPassword}
+                    onChangeText={(v) => {
+                      setPassword(v);
+                      clearSubmitError();
+                    }}
                     placeholder="비밀번호를 입력하세요"
                     secure
                     autoCapitalize="none"
@@ -357,11 +376,11 @@ export function SignupView() {
                 </View>
               </Reveal>
 
-              <Collapse visible={signupMutation.isError}>
-                <Text variant="bodySmall" tone="danger" className="pt-3">
-                  {signupMutation.error ? authErrorMessage(signupMutation.error) : ''}
-                </Text>
-              </Collapse>
+              <FormAlert
+                visible={signupMutation.isError}
+                message={signupMutation.error ? authErrorMessage(signupMutation.error) : ''}
+                gap={20}
+              />
 
               <Reveal index={3}>
                 <View className="mt-6">

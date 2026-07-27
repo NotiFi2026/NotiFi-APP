@@ -35,3 +35,31 @@ export function authErrorMessage(error: unknown): string {
   }
   return SERVER;
 }
+
+/** 오류의 원인이 되는 필드. 화면이 해당 입력칸을 붉은 링으로 지목하는 데 쓴다. */
+export type AuthErrorField = 'credentials' | 'email' | null;
+
+const EMAIL_CODES = new Set(['EMAIL_ALREADY_EXISTS', 'EMAIL_NOT_FOUND', 'USER_NOT_FOUND']);
+
+/** 에러 코드를 뽑아낸다 — axios envelope 또는 직접 throw한 Error.message. */
+function errorCodeOf(error: unknown): string | null {
+  if (isAxiosError(error)) {
+    const code = error.response?.data?.error?.code;
+    return typeof code === 'string' ? code : null;
+  }
+  if (error instanceof Error) return error.message;
+  return null;
+}
+
+/**
+ * 오류를 필드에 매핑한다.
+ * - `INVALID_CREDENTIALS` → 이메일·비밀번호 둘 다 지목(credentials).
+ * - 이메일 관련 코드 → 이메일 칸.
+ * - 네트워크/일반 서버 오류 → 지목할 필드 없음(배너만).
+ */
+export function authErrorField(error: unknown): AuthErrorField {
+  const code = errorCodeOf(error);
+  if (code === 'INVALID_CREDENTIALS') return 'credentials';
+  if (code && EMAIL_CODES.has(code)) return 'email';
+  return null;
+}

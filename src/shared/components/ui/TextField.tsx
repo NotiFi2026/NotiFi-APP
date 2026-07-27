@@ -55,6 +55,8 @@ export interface TextFieldProps
   error?: string;
   /** 검증을 통과했는지. 값이 있고 유효하면 오른쪽에 브랜드 체크가 뜬다(이메일식 긍정 피드백). */
   valid?: boolean;
+  /** 서버가 이 필드를 원인으로 지목했을 때. 링만 위험색으로 뜬다(메시지는 폼 배너가 담당). */
+  invalid?: boolean;
   /** 다음 필드로 포커스를 넘기기 위한 ref */
   inputRef?: Ref<TextInput>;
 }
@@ -65,6 +67,7 @@ export function TextField({
   secure = false,
   error,
   valid = false,
+  invalid = false,
   inputRef,
   editable = true,
   ...inputProps
@@ -85,10 +88,12 @@ export function TextField({
   const [validMark] = useState(() => new Animated.Value(showValid ? 1 : 0));
 
   const showError = Boolean(error) && touched && !focused;
+  // 서버가 지목한 필드는 링만 붉게 — 자체 error 메시지가 없어도 링은 위험색으로 뜬다.
+  const ringDanger = showError || invalid;
   // helper는 상시가 아니라 "포커스 중 아직 유효하지 않을 때"만 안내로 노출한다.
   // 유효해지거나 포커스가 빠지면 사라진다 → 비밀번호 8자 경고가 안 사라지던 버그 해결.
   const showHelper = Boolean(helper) && focused && !showError && !valid;
-  const active = focused || showError;
+  const active = focused || ringDanger;
 
   useEffect(() => {
     if (reduceMotion) {
@@ -222,7 +227,7 @@ export function TextField({
             bottom: -1,
             borderRadius: RADIUS.surface + 1,
             borderWidth: 2,
-            borderColor: showError ? RISK_COLORS.DANGER : BRAND.base,
+            borderColor: ringDanger ? RISK_COLORS.DANGER : BRAND.base,
             opacity: emphasis,
           }}
         />
