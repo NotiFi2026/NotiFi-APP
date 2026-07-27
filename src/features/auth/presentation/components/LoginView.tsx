@@ -14,7 +14,7 @@ import { USE_MOCK_AUTH } from '@/config/env';
 import { RADIUS, SHADOW_SOFT, TEAL } from '@/config/theme';
 import { useLogin } from '@/features/auth/application/hooks/useLogin';
 import { authErrorMessage } from '@/features/auth/domain/services/authError';
-import { emailError } from '@/features/auth/domain/services/authValidation';
+import { emailError, isValidEmail } from '@/features/auth/domain/services/authValidation';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
 import { Checkbox } from '@/shared/components/ui/Checkbox';
@@ -108,6 +108,7 @@ export function LoginView() {
                     onSubmitEditing={() => passwordRef.current?.focus()}
                     editable={!loginMutation.isPending}
                     error={emailError(email)}
+                    valid={isValidEmail(email)}
                   />
 
                   <TextField

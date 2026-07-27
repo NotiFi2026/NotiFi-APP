@@ -39,7 +39,6 @@ import { Text } from '@/shared/components/ui/Text';
 import { TextField } from '@/shared/components/ui/TextField';
 import {
   ArrowLeftIcon,
-  CheckIcon,
   PeopleGroupIcon,
   PersonIcon,
   type IconProps,
@@ -54,116 +53,123 @@ const ROLE_OPTIONS: { value: Role; label: string; hint: string; Glyph: Component
     { value: 'SOCIAL_WORKER', label: '사회복지사', hint: '여러 가구를 담당합니다', Glyph: PeopleGroupIcon },
   ];
 
+const SEGMENT_PAD = 4;
+
 /**
- * 역할 카드 — 선택 상태 색은 즉시 전환하고(색 애니메이션이 이전 깨짐의 원인),
- * 인디케이터 채움·체크만 스프링으로 움직인다. 두 카드는 stretch로 높이가 같다.
+ * 역할 세그먼트 컨트롤 — 흰 알약 하이라이트가 선택지 사이를 스프링으로 미끄러진다.
+ * 카드별 보더/리프트가 없어 깨질 구조 자체가 없다. 아래 힌트 한 줄은 선택에 따라 크로스페이드.
+ * (이전 카드 2장 방식이 반복적으로 깨져 세그먼트로 재디자인했다.)
  */
-function RoleCard({
-  option,
-  selected,
-  onPress,
-}: {
-  option: (typeof ROLE_OPTIONS)[number];
-  selected: boolean;
-  onPress: () => void;
-}) {
+function RoleSelector({ value, onChange }: { value: Role; onChange: (role: Role) => void }) {
   const reduceMotion = useReduceMotion();
-  const [progress] = useState(() => new Animated.Value(selected ? 1 : 0));
-  const [lift] = useState(() => new Animated.Value(0)); // 선택 + 호버 리프트
+  const [trackWidth, setTrackWidth] = useState(0);
+  const selectedIndex = ROLE_OPTIONS.findIndex((o) => o.value === value);
+  const segWidth = trackWidth > 0 ? (trackWidth - SEGMENT_PAD * 2) / ROLE_OPTIONS.length : 0;
+
+  const [slide] = useState(() => new Animated.Value(selectedIndex));
+  const [hintFade] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
     if (reduceMotion) {
-      progress.setValue(selected ? 1 : 0);
+      slide.setValue(selectedIndex);
       return;
     }
-    const animation = Animated.spring(progress, {
-      toValue: selected ? 1 : 0,
-      speed: 14,
-      bounciness: 14, // 체크가 톡 튀어 들어오도록 오버슈트
+    const animation = Animated.spring(slide, {
+      toValue: selectedIndex,
+      speed: 16,
+      bounciness: 8,
       useNativeDriver: true,
     });
     animation.start();
     return () => animation.stop();
-  }, [progress, selected, reduceMotion]);
+  }, [slide, selectedIndex, reduceMotion]);
 
-  const springLift = (value: number) => {
+  // 역할이 바뀌면 힌트를 짧게 페이드 아웃/인.
+  useEffect(() => {
     if (reduceMotion) return;
-    Animated.spring(lift, { toValue: value, speed: 20, bounciness: 0, useNativeDriver: true }).start();
-  };
-
-  const { Glyph } = option;
+    hintFade.setValue(0);
+    const animation = Animated.timing(hintFade, {
+      toValue: 1,
+      duration: 220,
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [hintFade, value, reduceMotion]);
 
   return (
-    <Pressable
-      onPress={onPress}
-      onHoverIn={() => springLift(1)}
-      onHoverOut={() => springLift(0)}
-      accessibilityRole="radio"
-      accessibilityState={{ selected }}
-      className="flex-1"
-    >
-      <Animated.View
-        className="px-4 pb-4 pt-3.5"
+    <View>
+      <Text variant="caption" tone="muted" className="mb-2">
+        역할
+      </Text>
+
+      <View
+        accessibilityRole="radiogroup"
+        onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
         style={{
+          height: 56,
+          padding: SEGMENT_PAD,
           borderRadius: RADIUS.surface,
-          backgroundColor: selected ? BRAND.soft : SURFACE.card,
-          borderWidth: selected ? 2 : 1,
-          borderColor: selected ? BRAND.base : SURFACE.line,
-          transform: [
-            // 선택 시 미세하게 뜨고, 호버 시 한 번 더.
-            {
-              translateY: Animated.add(
-                progress.interpolate({ inputRange: [0, 1], outputRange: [0, -2] }),
-                lift.interpolate({ inputRange: [0, 1], outputRange: [0, -2] })
-              ),
-            },
-          ],
+          backgroundColor: SURFACE.sunk,
         }}
+        className="flex-row"
       >
-        <View className="mb-3 flex-row items-start justify-between">
-          <Glyph color={selected ? BRAND.base : INK.muted} />
-
-          <View className="h-[22px] w-[22px] items-center justify-center">
-            {/* 링 — border-radius는 inline으로. NativeWind className이 View엔 먹지만 통일. */}
-            <View
-              style={{
+        {/* 미끄러지는 흰 알약 하이라이트 */}
+        {segWidth > 0 ? (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              {
                 position: 'absolute',
-                height: 22,
-                width: 22,
-                borderRadius: 11,
-                borderWidth: 1.5,
-                borderColor: selected ? BRAND.base : SURFACE.line,
-              }}
-            />
-            {/* 채움 — Animated.View는 NativeWind className이 안 먹으므로 borderRadius를 inline으로 */}
-            <Animated.View
-              style={{
-                position: 'absolute',
-                height: 22,
-                width: 22,
-                borderRadius: 11,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: BRAND.base,
-                opacity: progress.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0, 1, 1] }),
+                top: SEGMENT_PAD,
+                left: SEGMENT_PAD,
+                bottom: SEGMENT_PAD,
+                width: segWidth,
+                borderRadius: RADIUS.surface - SEGMENT_PAD,
+                backgroundColor: SURFACE.card,
                 transform: [
-                  { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.2, 1] }) },
+                  {
+                    translateX: slide.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, segWidth],
+                    }),
+                  },
                 ],
-              }}
-            >
-              <CheckIcon size={14} color={INK.inverse} />
-            </Animated.View>
-          </View>
-        </View>
+              },
+              SHADOW_SOFT,
+            ]}
+          />
+        ) : null}
 
-        <Text variant="label" tone={selected ? 'brand' : 'base'}>
-          {option.label}
-        </Text>
-        <Text variant="caption" tone="muted" className="mt-1">
-          {option.hint}
+        {ROLE_OPTIONS.map((option) => {
+          const selected = option.value === value;
+          const { Glyph } = option;
+          return (
+            <Pressable
+              key={option.value}
+              onPress={() => onChange(option.value)}
+              accessibilityRole="radio"
+              accessibilityState={{ selected }}
+              accessibilityLabel={option.label}
+              className="flex-1 flex-row items-center justify-center gap-2"
+              style={({ pressed }) => ({ opacity: pressed && !selected ? 0.6 : 1 })}
+            >
+              <Glyph size={18} color={selected ? BRAND.base : INK.muted} />
+              <Text variant="label" tone={selected ? 'brand' : 'muted'}>
+                {option.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {/* 선택된 역할 설명 — 바뀔 때 짧게 페이드 */}
+      <Animated.View style={{ opacity: hintFade }}>
+        <Text variant="caption" tone="muted" className="mt-2">
+          {ROLE_OPTIONS[selectedIndex]?.hint}
         </Text>
       </Animated.View>
-    </Pressable>
+    </View>
   );
 }
 
@@ -225,26 +231,6 @@ function IconButton({
         {children}
       </Animated.View>
     </Pressable>
-  );
-}
-
-function RoleSelector({ value, onChange }: { value: Role; onChange: (role: Role) => void }) {
-  return (
-    <View>
-      <Text variant="caption" tone="muted" className="mb-2">
-        역할
-      </Text>
-      <View className="flex-row items-stretch gap-3">
-        {ROLE_OPTIONS.map((option) => (
-          <RoleCard
-            key={option.value}
-            option={option}
-            selected={option.value === value}
-            onPress={() => onChange(option.value)}
-          />
-        ))}
-      </View>
-    </View>
   );
 }
 
@@ -346,6 +332,7 @@ export function SignupView() {
                     onSubmitEditing={() => passwordRef.current?.focus()}
                     editable={!signupMutation.isPending}
                     error={emailError(email)}
+                    valid={isValidEmail(email)}
                   />
 
                   <TextField
@@ -363,6 +350,7 @@ export function SignupView() {
                     onSubmitEditing={submit}
                     editable={!signupMutation.isPending}
                     error={passwordError(password)}
+                    valid={isValidPassword(password)}
                   />
 
                   <RoleSelector value={role} onChange={setRole} />
