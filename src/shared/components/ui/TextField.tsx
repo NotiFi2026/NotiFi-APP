@@ -21,7 +21,7 @@ import {
 } from 'react-native';
 
 import { BRAND, FONT, INK, RADIUS, RISK_COLORS, SURFACE } from '@/config/theme';
-import { Reveal } from '@/shared/components/ui/Reveal';
+import { Collapse } from '@/shared/components/ui/Collapse';
 import { Text } from '@/shared/components/ui/Text';
 import { EyeIcon, EyeOffIcon } from '@/shared/components/ui/icons';
 import { useReduceMotion } from '@/shared/hooks/useReduceMotion';
@@ -70,6 +70,7 @@ export function TextField({
   const [focused, setFocused] = useState(false);
   const [touched, setTouched] = useState(false);
   const [revealed, setRevealed] = useState(false);
+  const [toggleHovered, setToggleHovered] = useState(false);
 
   // lazy useState = 최초 1회만 생성되는 안정적인 값.
   // useRef(...).current 는 렌더 중 ref 접근이라 react-hooks/refs 위반 (reactCompiler 활성 상태).
@@ -148,10 +149,13 @@ export function TextField({
           {secure ? (
             <Pressable
               onPress={() => setRevealed((shown) => !shown)}
+              onHoverIn={() => setToggleHovered(true)}
+              onHoverOut={() => setToggleHovered(false)}
               accessibilityRole="button"
               accessibilityLabel={revealed ? '비밀번호 숨기기' : '비밀번호 표시'}
               hitSlop={12}
               className="h-11 w-11 items-end justify-center"
+              style={({ pressed }) => ({ opacity: pressed ? 0.5 : toggleHovered ? 1 : 0.72 })}
             >
               <View className="h-[22px] w-[22px]">
                 <Animated.View style={{ position: 'absolute', opacity: reveal }}>
@@ -187,17 +191,19 @@ export function TextField({
         />
       </Animated.View>
 
-      {showError ? (
-        <Reveal>
-          <Text variant="bodySmall" tone="danger" className="mt-2">
+      {/* 메시지 슬롯 — 높이를 애니메이션해 아래 형제가 부드럽게 밀린다.
+          상단 여백(pt-2)도 내용에 포함해 접힐 때 함께 사라지게 한다. */}
+      <Collapse visible={showError || Boolean(helper)}>
+        {showError ? (
+          <Text variant="bodySmall" tone="danger" className="pt-2">
             {error}
           </Text>
-        </Reveal>
-      ) : helper ? (
-        <Text variant="bodySmall" tone="muted" className="mt-2">
-          {helper}
-        </Text>
-      ) : null}
+        ) : helper ? (
+          <Text variant="bodySmall" tone="muted" className="pt-2">
+            {helper}
+          </Text>
+        ) : null}
+      </Collapse>
     </View>
   );
 }

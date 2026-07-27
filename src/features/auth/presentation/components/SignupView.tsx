@@ -6,7 +6,7 @@
  */
 
 import { router } from 'expo-router';
-import { useEffect, useRef, useState, type ComponentType } from 'react';
+import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react';
 import {
   Animated,
   KeyboardAvoidingView,
@@ -33,6 +33,7 @@ import {
 } from '@/features/auth/domain/services/authValidation';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
+import { Collapse } from '@/shared/components/ui/Collapse';
 import { Reveal } from '@/shared/components/ui/Reveal';
 import { Text } from '@/shared/components/ui/Text';
 import { TextField } from '@/shared/components/ui/TextField';
@@ -68,6 +69,7 @@ function RoleCard({
 }) {
   const reduceMotion = useReduceMotion();
   const [progress] = useState(() => new Animated.Value(selected ? 1 : 0));
+  const [lift] = useState(() => new Animated.Value(0)); // 선택 + 호버 리프트
 
   useEffect(() => {
     if (reduceMotion) {
@@ -76,58 +78,152 @@ function RoleCard({
     }
     const animation = Animated.spring(progress, {
       toValue: selected ? 1 : 0,
-      speed: 16,
-      bounciness: 12,
+      speed: 14,
+      bounciness: 14, // 체크가 톡 튀어 들어오도록 오버슈트
       useNativeDriver: true,
     });
     animation.start();
     return () => animation.stop();
   }, [progress, selected, reduceMotion]);
 
+  const springLift = (value: number) => {
+    if (reduceMotion) return;
+    Animated.spring(lift, { toValue: value, speed: 20, bounciness: 0, useNativeDriver: true }).start();
+  };
+
   const { Glyph } = option;
 
   return (
     <Pressable
       onPress={onPress}
+      onHoverIn={() => springLift(1)}
+      onHoverOut={() => springLift(0)}
       accessibilityRole="radio"
       accessibilityState={{ selected }}
-      className="flex-1 px-4 pb-4 pt-3.5"
-      style={{
-        borderRadius: RADIUS.surface,
-        backgroundColor: selected ? BRAND.soft : SURFACE.card,
-        borderWidth: selected ? 2 : 1,
-        borderColor: selected ? BRAND.base : SURFACE.line,
-      }}
+      className="flex-1"
     >
-      <View className="mb-3 flex-row items-start justify-between">
-        <Glyph color={selected ? BRAND.base : INK.muted} />
+      <Animated.View
+        className="px-4 pb-4 pt-3.5"
+        style={{
+          borderRadius: RADIUS.surface,
+          backgroundColor: selected ? BRAND.soft : SURFACE.card,
+          borderWidth: selected ? 2 : 1,
+          borderColor: selected ? BRAND.base : SURFACE.line,
+          transform: [
+            // 선택 시 미세하게 뜨고, 호버 시 한 번 더.
+            {
+              translateY: Animated.add(
+                progress.interpolate({ inputRange: [0, 1], outputRange: [0, -2] }),
+                lift.interpolate({ inputRange: [0, 1], outputRange: [0, -2] })
+              ),
+            },
+          ],
+        }}
+      >
+        <View className="mb-3 flex-row items-start justify-between">
+          <Glyph color={selected ? BRAND.base : INK.muted} />
 
-        <View className="h-[22px] w-[22px] items-center justify-center">
-          <View
-            className="absolute h-[22px] w-[22px] rounded-full"
-            style={{ borderWidth: 1.5, borderColor: selected ? BRAND.base : SURFACE.line }}
-          />
-          <Animated.View
-            className="absolute h-[22px] w-[22px] items-center justify-center rounded-full"
-            style={{
-              backgroundColor: BRAND.base,
-              opacity: progress,
-              transform: [
-                { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) },
-              ],
-            }}
-          >
-            <CheckIcon size={14} color={INK.inverse} />
-          </Animated.View>
+          <View className="h-[22px] w-[22px] items-center justify-center">
+            {/* 링 — border-radius는 inline으로. NativeWind className이 View엔 먹지만 통일. */}
+            <View
+              style={{
+                position: 'absolute',
+                height: 22,
+                width: 22,
+                borderRadius: 11,
+                borderWidth: 1.5,
+                borderColor: selected ? BRAND.base : SURFACE.line,
+              }}
+            />
+            {/* 채움 — Animated.View는 NativeWind className이 안 먹으므로 borderRadius를 inline으로 */}
+            <Animated.View
+              style={{
+                position: 'absolute',
+                height: 22,
+                width: 22,
+                borderRadius: 11,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: BRAND.base,
+                opacity: progress.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0, 1, 1] }),
+                transform: [
+                  { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.2, 1] }) },
+                ],
+              }}
+            >
+              <CheckIcon size={14} color={INK.inverse} />
+            </Animated.View>
+          </View>
         </View>
-      </View>
 
-      <Text variant="label" tone={selected ? 'brand' : 'base'}>
-        {option.label}
-      </Text>
-      <Text variant="caption" tone="muted" className="mt-1">
-        {option.hint}
-      </Text>
+        <Text variant="label" tone={selected ? 'brand' : 'base'}>
+          {option.label}
+        </Text>
+        <Text variant="caption" tone="muted" className="mt-1">
+          {option.hint}
+        </Text>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+/**
+ * 패널 위 아이콘 버튼(뒤로가기) — 호버/프레스 시 반투명 흰 원이 뜨고 아이콘이 살짝 밀린다.
+ * 아이콘의 광학 왼쪽선을 제목 텍스트와 맞추려 컨테이너를 왼쪽으로 당긴다.
+ */
+function IconButton({
+  onPress,
+  accessibilityLabel,
+  nudge = -2,
+  children,
+}: {
+  onPress: () => void;
+  accessibilityLabel: string;
+  /** 상호작용 시 아이콘 이동 방향(px). 뒤로가기는 왼쪽(-). */
+  nudge?: number;
+  children: ReactNode;
+}) {
+  const reduceMotion = useReduceMotion();
+  const [glow] = useState(() => new Animated.Value(0));
+
+  const spring = (value: number) => {
+    if (reduceMotion) return;
+    Animated.spring(glow, { toValue: value, speed: 20, bounciness: 0, useNativeDriver: true }).start();
+  };
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onHoverIn={() => spring(1)}
+      onHoverOut={() => spring(0)}
+      onPressIn={() => spring(1)}
+      onPressOut={() => spring(0)}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      hitSlop={8}
+      // 아이콘(24)이 44 박스 중앙 → 아이콘 왼쪽선 = 박스left+10.
+      // 제목 텍스트 왼쪽선과 맞추려 박스를 10px 당긴다(인라인으로 고정 — NativeWind 음수 클래스가 값이 어긋남).
+      className="h-11 w-11 items-center justify-center"
+      style={{ marginLeft: -10 }}
+    >
+      <Animated.View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          height: 40,
+          width: 40,
+          borderRadius: 20,
+          backgroundColor: '#FFFFFF',
+          opacity: glow.interpolate({ inputRange: [0, 1], outputRange: [0, 0.14] }),
+        }}
+      />
+      <Animated.View
+        style={{
+          transform: [{ translateX: glow.interpolate({ inputRange: [0, 1], outputRange: [0, nudge] }) }],
+        }}
+      >
+        {children}
+      </Animated.View>
     </Pressable>
   );
 }
@@ -191,15 +287,9 @@ export function SignupView() {
             style={{ backgroundColor: TEAL.deep, paddingTop: insets.top + 12 }}
             className="rounded-b-[32px] px-7 pb-14"
           >
-            <Pressable
-              onPress={() => router.back()}
-              accessibilityRole="button"
-              accessibilityLabel="로그인으로 돌아가기"
-              hitSlop={8}
-              className="-ml-2 h-11 w-11 items-center justify-center"
-            >
+            <IconButton onPress={() => router.back()} accessibilityLabel="로그인으로 돌아가기">
               <ArrowLeftIcon size={24} color="#FFFFFF" />
-            </Pressable>
+            </IconButton>
 
             <Reveal index={0}>
               <Text variant="headline" tone="inverse" className="mt-3">
@@ -279,13 +369,11 @@ export function SignupView() {
                 </View>
               </Reveal>
 
-              {signupMutation.isError ? (
-                <Reveal>
-                  <Text variant="bodySmall" tone="danger" className="mt-3">
-                    {authErrorMessage(signupMutation.error)}
-                  </Text>
-                </Reveal>
-              ) : null}
+              <Collapse visible={signupMutation.isError}>
+                <Text variant="bodySmall" tone="danger" className="pt-3">
+                  {signupMutation.error ? authErrorMessage(signupMutation.error) : ''}
+                </Text>
+              </Collapse>
 
               <Reveal index={3}>
                 <View className="mt-6">

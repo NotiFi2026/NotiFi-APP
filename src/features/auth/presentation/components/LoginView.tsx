@@ -18,6 +18,7 @@ import { emailError } from '@/features/auth/domain/services/authValidation';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
 import { Checkbox } from '@/shared/components/ui/Checkbox';
+import { Collapse } from '@/shared/components/ui/Collapse';
 import { Logo } from '@/shared/components/ui/Logo';
 import { Reveal } from '@/shared/components/ui/Reveal';
 import { Text } from '@/shared/components/ui/Text';
@@ -137,13 +138,11 @@ export function LoginView() {
                 </View>
               </Reveal>
 
-              {loginMutation.isError ? (
-                <Reveal>
-                  <Text variant="bodySmall" tone="danger" className="mt-2">
-                    {authErrorMessage(loginMutation.error)}
-                  </Text>
-                </Reveal>
-              ) : null}
+              <Collapse visible={loginMutation.isError}>
+                <Text variant="bodySmall" tone="danger" className="pt-2">
+                  {loginMutation.error ? authErrorMessage(loginMutation.error) : ''}
+                </Text>
+              </Collapse>
 
               <Reveal index={6}>
                 <View className="mt-6">

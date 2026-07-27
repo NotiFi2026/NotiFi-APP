@@ -37,6 +37,8 @@ export function Button({
   // useRef(...).current 는 렌더 중 ref 접근이라 react-hooks/refs 위반 (reactCompiler 활성 상태).
   const [scale] = useState(() => new Animated.Value(1));
   const [enabledProgress] = useState(() => new Animated.Value(disabled || loading ? 0 : 1));
+  const [hover] = useState(() => new Animated.Value(0)); // 웹 호버 (네이티브 no-op)
+  const [hovered, setHovered] = useState(false);
 
   const inactive = disabled || loading;
   const shownLabel = loading && loadingLabel ? loadingLabel : label;
@@ -44,6 +46,11 @@ export function Button({
   const springScale = (value: number) => {
     if (reduceMotion || inactive) return;
     Animated.spring(scale, { toValue: value, speed: 40, bounciness: 8, useNativeDriver: true }).start();
+  };
+
+  const springHover = (value: number) => {
+    if (reduceMotion || inactive) return;
+    Animated.spring(hover, { toValue: value, speed: 20, bounciness: 0, useNativeDriver: true }).start();
   };
 
   // 대기 ↔ 활성 전환: 청록이 차오르고 라벨이 흰색으로. 활성이 되는 순간 미세 스케일 팝.
@@ -77,13 +84,20 @@ export function Button({
           onPress={onPress}
           onPressIn={() => springScale(0.95)}
           onPressOut={() => springScale(1)}
+          onHoverIn={() => setHovered(true)}
+          onHoverOut={() => setHovered(false)}
           disabled={inactive}
           accessibilityRole="button"
           accessibilityState={{ disabled: inactive }}
           className="h-12 items-center justify-center px-3"
           style={({ pressed }) => ({ opacity: inactive ? 0.4 : pressed ? 0.6 : 1 })}
         >
-          <Text variant="label" tone="brand">
+          {/* 호버 시 밑줄 */}
+          <Text
+            variant="label"
+            tone="brand"
+            style={hovered ? { textDecorationLine: 'underline' } : undefined}
+          >
             {shownLabel}
           </Text>
         </Pressable>
@@ -94,11 +108,24 @@ export function Button({
   return (
     // 그림자는 활성일 때만. Animated shadowOpacity는 네이티브 드라이버(scale)와
     // 같은 노드에서 섞이면 에러라 정적으로 적용한다.
-    <Animated.View style={[{ transform: [{ scale }] }, active ? SHADOW_SOFT : null]}>
+    // 호버 시 살짝 떠오른다(활성일 때만).
+    <Animated.View
+      style={[
+        {
+          transform: [
+            { scale },
+            { translateY: hover.interpolate({ inputRange: [0, 1], outputRange: [0, -1.5] }) },
+          ],
+        },
+        active ? SHADOW_SOFT : null,
+      ]}
+    >
       <Pressable
         onPress={onPress}
         onPressIn={() => springScale(0.97)}
         onPressOut={() => springScale(1)}
+        onHoverIn={() => springHover(1)}
+        onHoverOut={() => springHover(0)}
         disabled={inactive}
         accessibilityRole="button"
         accessibilityState={{ disabled: inactive, busy: loading }}
@@ -116,6 +143,20 @@ export function Button({
             bottom: 0,
             backgroundColor: TEAL.deep,
             opacity: enabledProgress,
+          }}
+        />
+
+        {/* 호버 시 흰 6% 오버레이로 살짝 밝아진다 */}
+        <Animated.View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: '#FFFFFF',
+            opacity: hover.interpolate({ inputRange: [0, 1], outputRange: [0, 0.06] }),
           }}
         />
 

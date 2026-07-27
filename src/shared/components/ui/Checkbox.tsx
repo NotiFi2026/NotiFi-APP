@@ -22,6 +22,7 @@ export interface CheckboxProps {
 
 export function Checkbox({ checked, onChange, label, disabled = false }: CheckboxProps) {
   const reduceMotion = useReduceMotion();
+  const [hovered, setHovered] = useState(false);
   // lazy useState = 최초 1회만 생성되는 안정적인 값.
   // useRef(...).current 는 렌더 중 ref 접근이라 react-hooks/refs 위반 (reactCompiler 활성 상태).
   const [fill] = useState(() => new Animated.Value(checked ? 1 : 0));
@@ -44,13 +45,15 @@ export function Checkbox({ checked, onChange, label, disabled = false }: Checkbo
   return (
     <Pressable
       onPress={() => onChange(!checked)}
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
       disabled={disabled}
       accessibilityRole="checkbox"
       accessibilityState={{ checked, disabled }}
       accessibilityLabel={label}
       hitSlop={8}
       className="h-12 flex-row items-center"
-      style={{ opacity: disabled ? 0.45 : 1 }}
+      style={({ pressed }) => ({ opacity: disabled ? 0.45 : pressed ? 0.7 : 1 })}
     >
       <View
         className="items-center justify-center overflow-hidden"
@@ -59,7 +62,8 @@ export function Checkbox({ checked, onChange, label, disabled = false }: Checkbo
           height: BOX_SIZE,
           borderRadius: 8,
           borderWidth: 1.5,
-          borderColor: checked ? BRAND.base : SURFACE.line,
+          // 호버 시 미체크 박스 보더가 브랜드 색으로 살짝 물든다.
+          borderColor: checked || hovered ? BRAND.base : SURFACE.line,
           backgroundColor: SURFACE.card,
         }}
       >
