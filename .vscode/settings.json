@@ -3,5 +3,20 @@
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit",
     "source.sortMembers": "explicit"
-  }
+  },
+
+  // --- NativeWind(Tailwind) IntelliSense ---
+  // RN에는 HTML의 class가 없고 className만 쓰므로 속성 목록을 명시해야 자동완성이 뜬다.
+  "tailwindCSS.classAttributes": ["class", "className"],
+  // tsx를 CSS 언어 서버가 인식하도록 매핑 (기본값은 HTML/CSS 계열만 인식)
+  "tailwindCSS.includeLanguages": {
+    "typescript": "javascript",
+    "typescriptreact": "javascript"
+  },
+  // className="..." 안은 문자열 리터럴이라, 이걸 켜지 않으면 자동완성이 뜨지 않는다.
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
+  // 루트 tailwind.config.js가 nativewind/preset을 물고 있다 (risk.* 색상 토큰 포함)
+  "tailwindCSS.experimental.configFile": "tailwind.config.js"
 }

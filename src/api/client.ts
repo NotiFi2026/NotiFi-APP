@@ -21,7 +21,10 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(async (config) => {
-  const token = await getAccessToken();
+  // 메모리(Zustand) 우선, 없으면 SecureStore.
+  // 자동 로그인을 끄면 토큰을 SecureStore에 저장하지 않고, 웹에서는 SecureStore 자체가 no-op이라
+  // 메모리를 먼저 보지 않으면 인증 헤더가 통째로 빠진다.
+  const token = useAuthStore.getState().accessToken ?? (await getAccessToken());
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -29,7 +32,7 @@ apiClient.interceptors.request.use(async (config) => {
 });
 
 let isRefreshing = false;
-let pendingQueue: Array<(token: string | null) => void> = [];
+let pendingQueue: ((token: string | null) => void)[] = [];
 
 async function handleSessionExpired(originalError: unknown) {
   await clearTokens();

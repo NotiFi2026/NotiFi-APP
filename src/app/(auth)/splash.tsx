@@ -1,29 +1,40 @@
-import { router } from 'expo-router';
-import { useEffect } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
-
-import { getRefreshToken } from '@/lib/secureStore';
-
 /**
- * A-1. 스플래시 — ui-spec.md 3절.
- * TODO: refreshToken 존재 시 POST /auth/refresh(A3) 호출 → 성공하면 홈, 실패하면 로그인.
- * 지금은 골격만이라 토큰 존재 여부로만 임시 분기한다.
+ * A-1. 스플래시 — ui-spec.md A-1.
+ * 세션 게이트: 저장된 토큰을 A3로 갱신해 홈으로, 실패하면 로그인으로 보낸다.
+ * 사용자 인터랙션 없음.
  */
+
+import { View } from 'react-native';
+
+import { useSessionRestore } from '@/features/auth/application/hooks/useSessionRestore';
+import { Screen } from '@/shared/components/layout/Screen';
+import { LogoMark } from '@/shared/components/ui/Logo';
+import { SignalPulse } from '@/shared/components/ui/SignalPulse';
+import { Text } from '@/shared/components/ui/Text';
+
 export default function SplashScreen() {
-  useEffect(() => {
-    getRefreshToken().then((refreshToken) => {
-      if (refreshToken) {
-        router.replace('/(app)/(tabs)/home');
-      } else {
-        router.replace('/(auth)/login');
-      }
-    });
-  }, []);
+  useSessionRestore();
 
   return (
-    <View className="flex-1 items-center justify-center gap-3 bg-white dark:bg-black">
-      <Text className="text-2xl font-semibold text-black dark:text-white">NotiFi</Text>
-      <ActivityIndicator />
-    </View>
+    <Screen>
+      <View className="flex-1 items-center justify-center">
+        <SignalPulse size={220}>
+          <LogoMark size={72} />
+        </SignalPulse>
+
+        <Text variant="headline" className="mt-8">
+          NotiFi
+        </Text>
+        <Text variant="body" tone="muted" className="mt-2">
+          연결을 확인하고 있습니다
+        </Text>
+      </View>
+
+      <View className="items-center pb-4">
+        <Text variant="caption" tone="muted">
+          카메라 없이 WiFi 신호로만 감지합니다
+        </Text>
+      </View>
+    </Screen>
   );
 }

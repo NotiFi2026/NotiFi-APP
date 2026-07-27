@@ -44,8 +44,13 @@ yarn-error.*
 # 프로젝트 문서·Claude 컨텍스트 — 저장소 비공개 유지
 /docs
 /CLAUDE.md
+/PRODUCT.md
+/DESIGN.md
 .claude/
 
 # FCM 시크릿
 google-services.json
 GoogleService-Info.plist
+
+# Firebase (프로젝트 식별자 포함 — docs/firebase-setup.md 참고)
+google-services.json

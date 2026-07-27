@@ -1,23 +1,32 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { View } from 'react-native';
 
-import { useEmergencyScreenData } from '@/features/escalation/application/hooks/useEmergencyScreenData';
-import { EmergencyScreen } from '@/features/escalation/presentation/components/EmergencyScreen';
+import { Screen } from '@/shared/components/layout/Screen';
+import { Text } from '@/shared/components/ui/Text';
 
 /**
- * D-4. 응급 풀스크린 — 발표용 임시 화면.
- * esid는 지금은 목데이터 키(fall/inactivity/respiration/anomaly)로 사용.
- * TODO: API 명세 확정 후 AI 서버 직접 연동, onConfirmHandled/onDismissFalseAlarm을 실제 처리로 교체.
+ * D-4. 응급 풀스크린 — 재작성 예정 (ui-spec.md 3절 D).
+ * 라우트 존치 이유: lib/notifications.ts의 useNotificationDeepLink가 이 경로로 push한다.
+ * esid를 그대로 렌더해 두면 재작성 기간에도 FCM 딥링크 도달을 계속 확인할 수 있다.
+ *
+ * 실제 D-4는 ui-spec상 전면 경고색 화면이며 E2 연동·해제 액션과 함께 다음 작업으로 만든다.
  */
 export default function EmergencyRoute() {
   const { esid } = useLocalSearchParams<{ esid: string }>();
-  const { data } = useEmergencyScreenData(esid);
 
   return (
-    <EmergencyScreen
-      data={data}
-      onConfirmHandled={() => router.back()}
-      onDismissFalseAlarm={() => router.back()}
-      onViewDetail={() => router.back()}
-    />
+    <Screen>
+      <View className="flex-1 justify-center">
+        <Text variant="caption" tone="muted">
+          ESCALATION {esid}
+        </Text>
+        <Text variant="headline" className="mt-3">
+          응급 화면 (재작성 예정)
+        </Text>
+        <Text variant="body" tone="muted" className="mt-3">
+          FCM 딥링크는 여기까지 도달했습니다. 상세·해제 화면은 다음에 만듭니다.
+        </Text>
+      </View>
+    </Screen>
   );
 }
