@@ -48,3 +48,7 @@ export async function mockRefresh(): Promise<RefreshResponse> {
   await settle();
   return issueTokens();
 }
+
+export async function mockLogout(): Promise<void> {
+  await settle();
+}
