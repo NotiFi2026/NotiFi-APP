@@ -1,5 +1,5 @@
 /**
- * A1 회원가입 · A2 로그인 · A3 토큰 갱신 — api-spec.md 인증 절.
+ * A1 회원가입 · A2 로그인 · A3 토큰 갱신 · A4 로그아웃 — api-spec.md 인증 절.
  * 필드는 서버와 동일하게 snake_case 유지 (StyleGuide-RN.md 7절).
  *
  * EXPO_PUBLIC_USE_MOCK_AUTH=true 이면 서버 대신 api/mock/authMock.ts로 우회한다.
@@ -8,7 +8,7 @@
 import axios from 'axios';
 
 import { apiClient } from '@/api/client';
-import { mockLogin, mockRefresh, mockSignup } from '@/api/mock/authMock';
+import { mockLogin, mockLogout, mockRefresh, mockSignup } from '@/api/mock/authMock';
 import { API_BASE_URL, USE_MOCK_AUTH } from '@/config/env';
 import type { SessionUser } from '@/features/auth/application/store/authStore';
 import type { ApiResponse } from '@/shared/types/api';
@@ -69,4 +69,17 @@ export async function refreshSession(refreshToken: string): Promise<RefreshRespo
     throw new Error(data.error?.code ?? 'REFRESH_FAILED');
   }
   return data.data;
+}
+
+/**
+ * A4. 서버의 refresh 토큰을 폐기한다 (인증 필요 — Authorization은 요청 인터셉터가 부착).
+ * 여기서는 서버 폐기만 담당하고, 로컬 세션 정리는 호출부(useLogout)의 몫이다.
+ */
+export async function logout(): Promise<void> {
+  if (USE_MOCK_AUTH) return mockLogout();
+
+  const { data } = await apiClient.post<ApiResponse<unknown>>('/auth/logout');
+  if (!data.success) {
+    throw new Error(data.error?.code ?? 'LOGOUT_FAILED');
+  }
 }

@@ -76,7 +76,7 @@ apiClient.interceptors.response.use(
         `${API_BASE_URL}/auth/refresh`,
         { refresh_token: refreshToken }
       );
-      if (!data.data) {
+      if (!data.success || !data.data) {
         throw new Error('REFRESH_FAILED');
       }
       const { access_token, refresh_token } = data.data;
