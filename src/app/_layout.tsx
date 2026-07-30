@@ -5,7 +5,6 @@ import '@/global.css';
 import { GothicA1_400Regular } from '@expo-google-fonts/gothic-a1/400Regular';
 import { GothicA1_500Medium } from '@expo-google-fonts/gothic-a1/500Medium';
 import { GothicA1_700Bold } from '@expo-google-fonts/gothic-a1/700Bold';
-import { Hahmlet_600SemiBold } from '@expo-google-fonts/hahmlet/600SemiBold';
 import { Hahmlet_700Bold } from '@expo-google-fonts/hahmlet/700Bold';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
@@ -47,7 +46,6 @@ export default function RootLayout() {
     GothicA1_400Regular,
     GothicA1_500Medium,
     GothicA1_700Bold,
-    Hahmlet_600SemiBold,
     Hahmlet_700Bold,
   });
 
