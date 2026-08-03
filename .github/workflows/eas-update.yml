@@ -1,0 +1,33 @@
+# main에 push되면 EAS Update(OTA)로 JS 번들을 배포한다.
+# channel 'main'을 구독하는 preview APK가 재실행 시 자동 갱신된다.
+# 네이티브 변경(의존성 추가 등)은 OTA로 못 나간다 — eas build로 재빌드해야 한다.
+#
+# 필요한 시크릿: EXPO_TOKEN (expo.dev Access Token)
+# .env은 gitignore라 CI에 없다 — EXPO_PUBLIC_* 값은 여기서 명시한다.
+name: EAS Update (OTA)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - run: eas update --branch main --auto --non-interactive
+        env:
+          EXPO_PUBLIC_USE_MOCK_AUTH: 'true'
