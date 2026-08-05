@@ -23,7 +23,7 @@ export function useSessionRestore(): void {
   useEffect(() => {
     let settled = false;
 
-    const leaveTo = (target: '/(auth)/login' | '/(app)/home') => {
+    const leaveTo = (target: '/(auth)/login' | '/(app)/(tabs)/home') => {
       if (settled) return;
       settled = true;
       router.replace(target);
@@ -41,7 +41,7 @@ export function useSessionRestore(): void {
 
         const tokens = await refreshSession(refreshToken);
         await restoreSession(tokens.access_token, tokens.refresh_token, user);
-        leaveTo('/(app)/home');
+        leaveTo('/(app)/(tabs)/home');
       } catch {
         await clearTokens();
         leaveTo('/(auth)/login');
