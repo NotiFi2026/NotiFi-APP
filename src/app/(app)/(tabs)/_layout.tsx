@@ -1,41 +1,32 @@
 /**
- * 하단 탭 — 홈 / 알림 / 내 정보 (ui-spec.md 2-1).
- * 브루탈리스트: 종이 면 + 상단 2px 잉크 룰. 그림자·반투명 없음.
+ * 하단 탭 — 알림 / 홈(센터 원형) / 내 정보 (ui-spec.md 2-1).
+ * 커스텀 TabBar(센터 노치)가 그린다. 초기 라우트는 순서와 무관하게 홈.
  */
 
 import { Tabs } from 'expo-router';
 
-import { BRUT, FONT } from '@/config/theme';
+import { TabBar } from '@/shared/components/navigation/TabBar';
 import { BellIcon, HomeIcon, PersonIcon } from '@/shared/components/ui/icons';
+
+export const unstable_settings = {
+  initialRouteName: 'home',
+};
 
 export default function TabsLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: BRUT.ink,
-        tabBarInactiveTintColor: BRUT.inkMuted,
-        tabBarStyle: {
-          backgroundColor: BRUT.paper,
-          borderTopWidth: 2,
-          borderTopColor: BRUT.ink,
-          elevation: 0, // Android 기본 그림자 제거
-        },
-        tabBarLabelStyle: { fontFamily: FONT.medium, fontSize: 11 },
-      }}
-    >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: '홈',
-          tabBarIcon: ({ color, size }) => <HomeIcon size={size} color={color} />,
-        }}
-      />
+    <Tabs tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false }}>
       <Tabs.Screen
         name="notifications"
         options={{
           title: '알림',
           tabBarIcon: ({ color, size }) => <BellIcon size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="home"
+        options={{
+          title: '홈',
+          tabBarIcon: ({ color, size }) => <HomeIcon size={size} color={color} />,
         }}
       />
       <Tabs.Screen
