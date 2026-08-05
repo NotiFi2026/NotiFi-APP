@@ -48,17 +48,6 @@ module.exports = {
           DEFAULT: '#1F6C9F',
           surface: '#E1F3FE',
         },
-        // 브루탈리스트 기판 (Swiss Industrial Print) — 홈·탭 화면부터 적용하는 새 방향.
-        // config/theme.ts의 BRUT와 값이 같아야 한다. radius·그라데이션·소프트 섀도 금지.
-        brut: {
-          paper: '#F4F4F0', // 무광 문서지
-          ink: '#0A0A0A', // 카본 잉크 (18.6:1)
-          'ink-muted': '#5A5A54', // 보조 텍스트 (6.6:1)
-          line: '#C8C8C0', // 옅은 보조 룰 — 주 구획은 ink
-          sunk: '#EAEAE4', // 스켈레톤·비활성 면
-          red: '#E61919', // Hazard Red — DANGER·응급 전용
-          amber: '#956400', // WARNING 전용
-        },
       },
     },
   },
