@@ -64,6 +64,21 @@ export const RADIUS = {
 } as const;
 
 /**
+ * 브루탈리스트 기판 (Swiss Industrial Print) — 홈·탭 화면부터 적용하는 새 방향.
+ * 그라데이션·소프트 섀도·반투명·radius 금지. 구획은 1~2px 솔리드 보더로만.
+ * 인증 화면(웜 모노크롬 토큰)은 후속 재스타일 전까지 기존 토큰을 유지한다.
+ */
+export const BRUT = {
+  paper: '#F4F4F0', // 무광 문서지
+  ink: '#0A0A0A', // 카본 잉크 (18.6:1)
+  inkMuted: '#5A5A54', // 보조 텍스트 (6.6:1)
+  lineFaint: '#C8C8C0', // 옅은 보조 룰 — 주 구획은 ink를 그대로 쓴다
+  sunk: '#EAEAE4', // 스켈레톤·비활성 면
+  red: '#E61919', // Hazard Red — DANGER·응급 전용. 범용 액센트로 쓰지 않는다
+  amber: '#956400', // WARNING 전용 (RISK_COLORS.WARNING과 동일 값)
+} as const;
+
+/**
  * Gothic A1 — 한글 UI 서체. React Native에서는 fontWeight가 커스텀 폰트에 적용되지 않으므로
  * 굵기마다 별도 fontFamily를 지정해야 한다.
  */
@@ -74,6 +89,12 @@ export const FONT = {
   // 헤드라인 전용 명조 대비 서체 (Hahmlet). display·headline에만 쓴다.
   serifSemi: 'Hahmlet_600SemiBold',
   serifBold: 'Hahmlet_700Bold',
+  // 브루탈리스트 매크로 타이포 — 히어로 상태 문구 등 구조물급 대형 텍스트 전용.
+  black: 'GothicA1_900Black',
+  // 텔레메트리(시각·노드 수·ID·마커) 전용 모노스페이스. 한글 본문에는 쓰지 않는다.
+  mono: 'IBMPlexMono_400Regular',
+  monoMedium: 'IBMPlexMono_500Medium',
+  monoBold: 'IBMPlexMono_700Bold',
 } as const;
 
 export type RiskLevel = 'SAFE' | 'WARNING' | 'DANGER' | null;

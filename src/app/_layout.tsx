@@ -5,8 +5,12 @@ import '@/global.css';
 import { GothicA1_400Regular } from '@expo-google-fonts/gothic-a1/400Regular';
 import { GothicA1_500Medium } from '@expo-google-fonts/gothic-a1/500Medium';
 import { GothicA1_700Bold } from '@expo-google-fonts/gothic-a1/700Bold';
+import { GothicA1_900Black } from '@expo-google-fonts/gothic-a1/900Black';
 import { Hahmlet_600SemiBold } from '@expo-google-fonts/hahmlet/600SemiBold';
 import { Hahmlet_700Bold } from '@expo-google-fonts/hahmlet/700Bold';
+import { IBMPlexMono_400Regular } from '@expo-google-fonts/ibm-plex-mono/400Regular';
+import { IBMPlexMono_500Medium } from '@expo-google-fonts/ibm-plex-mono/500Medium';
+import { IBMPlexMono_700Bold } from '@expo-google-fonts/ibm-plex-mono/700Bold';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
@@ -47,8 +51,12 @@ export default function RootLayout() {
     GothicA1_400Regular,
     GothicA1_500Medium,
     GothicA1_700Bold,
+    GothicA1_900Black,
     Hahmlet_600SemiBold,
     Hahmlet_700Bold,
+    IBMPlexMono_400Regular,
+    IBMPlexMono_500Medium,
+    IBMPlexMono_700Bold,
   });
 
   useEffect(() => {
