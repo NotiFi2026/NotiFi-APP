@@ -17,7 +17,7 @@ export function useSignup() {
     onSuccess: async (session) => {
       // 가입 직후에는 자동 로그인을 켠 상태로 시작한다.
       await persistSession(session, true);
-      router.replace('/(app)/home');
+      router.replace('/(app)/(tabs)/home');
     },
   });
 }

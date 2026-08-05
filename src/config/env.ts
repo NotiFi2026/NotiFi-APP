@@ -11,3 +11,10 @@ export const API_BASE_URL =
  * 백엔드가 붙으면 이 변수와 src/api/mock/ 을 함께 지운다.
  */
 export const USE_MOCK_AUTH = process.env.EXPO_PUBLIC_USE_MOCK_AUTH === 'true';
+
+/**
+ * 노인 목록(C2) 목킹. 인증과 백엔드 착지 시점이 달라 플래그를 분리한다 —
+ * 실인증 + 목 목록으로 도는 통합 기간이 있을 수 있다.
+ * care-targets API가 붙으면 이 변수와 src/api/mock/careTargetsMock.ts를 함께 지운다.
+ */
+export const USE_MOCK_CARE_TARGETS = process.env.EXPO_PUBLIC_USE_MOCK_CARE_TARGETS === 'true';

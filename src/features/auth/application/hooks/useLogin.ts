@@ -24,7 +24,7 @@ export function useLogin() {
     mutationFn: ({ email, password }: LoginInput) => login(email.trim(), password),
     onSuccess: async (session, { remember }) => {
       await persistSession(session, remember);
-      router.replace('/(app)/home');
+      router.replace('/(app)/(tabs)/home');
     },
   });
 }
