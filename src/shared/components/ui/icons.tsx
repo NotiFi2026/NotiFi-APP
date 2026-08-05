@@ -4,13 +4,15 @@
  * 어느 앱에나 있는 티가 나기 때문이다. 획 굵기는 전부 1.8로 통일한다.
  */
 
+import type { ColorValue } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import { INK } from '@/config/theme';
 
 export interface IconProps {
   size?: number;
-  color?: string;
+  // ColorValue: 네비게이터(탭바 등)가 넘겨주는 색을 그대로 받기 위함
+  color?: ColorValue;
 }
 
 const STROKE = 1.8;
@@ -93,6 +95,59 @@ export function PersonIcon({ size = 20, color = INK.muted }: IconProps) {
         stroke={color}
         strokeWidth={STROKE}
         strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+/** 하단 탭 — 홈 */
+export function HomeIcon({ size = 22, color = INK.muted }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M4.5 10.5 12 4l7.5 6.5V20h-5.4v-5.6h-4.2V20H4.5v-9.5Z"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/** 하단 탭·앱바 — 알림 종 */
+export function BellIcon({ size = 22, color = INK.muted }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M6 16v-5.5a6 6 0 0 1 12 0V16l1.5 2.5h-15L6 16Z"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinejoin="round"
+      />
+      <Path d="M10 21h4" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+/** 등록 CTA — 플러스 */
+export function PlusIcon({ size = 20, color = INK.base }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 5v14M5 12h14" stroke={color} strokeWidth={2.2} strokeLinecap="square" />
+    </Svg>
+  );
+}
+
+/** 목록 진입 표시 — 오른쪽 셰브런 */
+export function ChevronRightIcon({ size = 20, color = INK.muted }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="m9 4.5 7 7.5-7 7.5"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </Svg>
   );
