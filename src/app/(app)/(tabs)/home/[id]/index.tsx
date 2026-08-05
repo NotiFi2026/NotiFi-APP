@@ -6,23 +6,24 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
 
-import { BrutScreen } from '@/shared/components/layout/BrutScreen';
-import { BrutButton } from '@/shared/components/ui/BrutButton';
-import { Mono } from '@/shared/components/ui/Mono';
+import { Screen } from '@/shared/components/layout/Screen';
+import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
 
 export default function CareTargetDashboardScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   return (
-    <BrutScreen>
-      <View className="flex-1 items-center justify-center gap-3">
-        <Mono size={12}>{`[ DASHBOARD / C-1 · TARGET ${id} ]`}</Mono>
+    <Screen>
+      <View className="flex-1 items-center justify-center gap-2">
+        <Text variant="eyebrow" tone="muted">
+          대시보드 · 대상 {id}
+        </Text>
         <Text variant="title">대시보드는 다음 작업에서 만듭니다</Text>
-        <View className="mt-4 self-stretch">
-          <BrutButton variant="outline" label="돌아가기" onPress={() => router.back()} />
+        <View className="mt-4">
+          <Button variant="text" label="돌아가기" onPress={() => router.back()} />
         </View>
       </View>
-    </BrutScreen>
+    </Screen>
   );
 }

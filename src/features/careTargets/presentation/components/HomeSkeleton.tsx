@@ -1,21 +1,13 @@
 /**
- * 로딩 스켈레톤 — 카드 골격 2장 (ui-spec B-1). opacity 펄스, 감속 모션 존중.
+ * 로딩 스켈레톤 — 실제 레이아웃(상태 컬러 카드 + 흰 상세 카드)과 같은 지오메트리로 깔린다.
+ * 형태가 다르면 로딩→콘텐츠 전환이 덜컹인다 (사용자 피드백). opacity 펄스, 감속 모션 존중.
  */
 
 import { useEffect, useState } from 'react';
 import { Animated, View } from 'react-native';
 
+import { SHADOW_SOFT } from '@/config/theme';
 import { useReduceMotion } from '@/shared/hooks/useReduceMotion';
-
-function SkeletonBlock() {
-  return (
-    <View className="border-2 border-brut-line p-5">
-      <View className="h-4 w-24 bg-brut-sunk" />
-      <View className="mt-3 h-7 w-40 bg-brut-sunk" />
-      <View className="mt-4 h-3 w-32 bg-brut-sunk" />
-    </View>
-  );
-}
 
 export function HomeSkeleton() {
   const reduceMotion = useReduceMotion();
@@ -25,7 +17,7 @@ export function HomeSkeleton() {
     if (reduceMotion) return;
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 0.45, duration: 700, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0.5, duration: 700, useNativeDriver: true }),
         Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: true }),
       ])
     );
@@ -34,9 +26,19 @@ export function HomeSkeleton() {
   }, [pulse, reduceMotion]);
 
   return (
-    <Animated.View style={{ opacity: pulse }} className="gap-4 px-5 pt-6">
-      <SkeletonBlock />
-      <SkeletonBlock />
+    <Animated.View style={{ opacity: pulse }}>
+      {/* 흰 상세 카드 자리 — 행 2개 + 버튼 (상단 무대는 실제 StatusStage가 그린다) */}
+      <View className="bg-surface px-6 pb-6 pt-2" style={{ borderRadius: 24, ...SHADOW_SOFT }}>
+        <View className="flex-row items-center justify-between border-b border-line py-4">
+          <View className="h-4 w-20 rounded-md bg-surface-sunk" />
+          <View className="h-4 w-24 rounded-md bg-surface-sunk" />
+        </View>
+        <View className="flex-row items-center justify-between py-4">
+          <View className="h-4 w-16 rounded-md bg-surface-sunk" />
+          <View className="h-4 w-20 rounded-md bg-surface-sunk" />
+        </View>
+        <View className="mt-2 h-[54px] rounded-[14px] bg-surface-sunk" />
+      </View>
     </Animated.View>
   );
 }
