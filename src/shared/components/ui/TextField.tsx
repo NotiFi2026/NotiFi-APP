@@ -57,6 +57,8 @@ export interface TextFieldProps
   valid?: boolean;
   /** 서버가 이 필드를 원인으로 지목했을 때. 링만 위험색으로 뜬다(메시지는 폼 배너가 담당). */
   invalid?: boolean;
+  /** 여러 줄 입력(메모 등). 높이가 늘어나고 위 정렬된다. */
+  multiline?: boolean;
   /** 다음 필드로 포커스를 넘기기 위한 ref */
   inputRef?: Ref<TextInput>;
 }
@@ -68,6 +70,7 @@ export function TextField({
   error,
   valid = false,
   invalid = false,
+  multiline = false,
   inputRef,
   editable = true,
   ...inputProps
@@ -149,7 +152,9 @@ export function TextField({
         }}
       >
         <View
-          className="h-[54px] flex-row items-center px-4"
+          className={
+            multiline ? 'min-h-[112px] flex-row items-start px-4 py-3' : 'h-[54px] flex-row items-center px-4'
+          }
           style={{
             backgroundColor: SURFACE.card,
             borderRadius: RADIUS.surface,
@@ -161,6 +166,7 @@ export function TextField({
             {...inputProps}
             ref={inputRef}
             editable={editable}
+            multiline={multiline}
             secureTextEntry={secure && !revealed}
             placeholderTextColor={INK.muted}
             selectionColor={BRAND.base}
@@ -172,6 +178,7 @@ export function TextField({
             className="flex-1 text-[16px]"
             style={[
               { color: editable ? INK.base : INK.muted, fontFamily: FONT.regular },
+              multiline ? { textAlignVertical: 'top' as const, minHeight: 88 } : null,
               WEB_OUTLINE_RESET,
             ]}
           />
