@@ -129,6 +129,42 @@ export function BellIcon({ size = 22, color = INK.muted }: IconProps) {
   );
 }
 
+/** 하단 탭 — 기록 (시계) */
+export function HistoryIcon({ size = 22, color = INK.muted }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx={12} cy={12} r={8.5} stroke={color} strokeWidth={STROKE} />
+      <Path
+        d="M12 7.5V12l3.2 2.2"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/** 하단 탭 — 리포트 (문서) */
+export function ReportIcon({ size = 22, color = INK.muted }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M6 3.5h8.5L18 7v13.5H6V3.5Z"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M9 11h6M9 14.5h6M9 17.5h3.5"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
 /** 등록 CTA — 플러스 */
 export function PlusIcon({ size = 20, color = INK.base }: IconProps) {
   return (
