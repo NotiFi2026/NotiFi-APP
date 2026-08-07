@@ -12,12 +12,12 @@ export function useCreateDevice(careTargetId: number) {
 
   return useMutation({
     mutationFn: (body: DeviceCreateRequest) => createDevice(careTargetId, body),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['devices', careTargetId] }),
-        queryClient.invalidateQueries({ queryKey: ['care-target-status', careTargetId] }),
-        queryClient.invalidateQueries({ queryKey: ['care-targets'] }),
-      ]);
+    onSuccess: () => {
+      // await 금지 — 여기서 기다리면 mutate쪽 onSuccess(완료 화면 전환)가
+      // 밑에 깔린 화면들의 리페치가 끝날 때까지 밀린다. 무효화만 걸고 즉시 반환.
+      void queryClient.invalidateQueries({ queryKey: ['devices', careTargetId] });
+      void queryClient.invalidateQueries({ queryKey: ['care-target-status', careTargetId] });
+      void queryClient.invalidateQueries({ queryKey: ['care-targets'] });
     },
   });
 }

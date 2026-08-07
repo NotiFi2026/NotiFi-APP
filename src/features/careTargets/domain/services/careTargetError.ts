@@ -1,9 +1,9 @@
 /**
  * 노인 등록(C1) 서버 에러 코드 → 사용자 문장. 순수 TS (RN 독립).
- * authError.ts와 같은 계약 — axios envelope과 직접 throw한 Error 둘 다 받는다.
+ * 디코딩 골격은 api/errorMessage.ts 공용 리졸버 — 여기는 도메인 테이블만.
  */
 
-import { isAxiosError } from 'axios';
+import { createErrorMessage } from '@/api/errorMessage';
 
 const MESSAGE_BY_CODE: Record<string, string> = {
   VALIDATION_ERROR: '입력 정보를 다시 확인해 주세요.',
@@ -12,20 +12,7 @@ const MESSAGE_BY_CODE: Record<string, string> = {
   REQUEST_FAILED: '등록에 실패했습니다. 잠시 후 다시 시도해 주세요.',
 };
 
-const NETWORK = '인터넷 연결을 확인해 주세요.';
-const SERVER = '등록에 실패했습니다. 잠시 후 다시 시도해 주세요.';
-
-export function careTargetErrorMessage(error: unknown): string {
-  if (isAxiosError(error)) {
-    if (!error.response) return NETWORK;
-    const code = error.response.data?.error?.code;
-    if (typeof code === 'string' && MESSAGE_BY_CODE[code]) {
-      return MESSAGE_BY_CODE[code];
-    }
-    return SERVER;
-  }
-  if (error instanceof Error && MESSAGE_BY_CODE[error.message]) {
-    return MESSAGE_BY_CODE[error.message];
-  }
-  return SERVER;
-}
+export const careTargetErrorMessage = createErrorMessage(
+  MESSAGE_BY_CODE,
+  '등록에 실패했습니다. 잠시 후 다시 시도해 주세요.'
+);
