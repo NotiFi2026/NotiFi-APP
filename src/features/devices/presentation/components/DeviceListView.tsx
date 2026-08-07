@@ -102,7 +102,15 @@ export function DeviceListView({ careTargetId }: { careTargetId: number }) {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="대시보드로 돌아가기"
-          onPress={() => router.back()}
+          onPress={() =>
+            // 직접 링크·새로고침으로 스택이 1장이면 back이 무시된다 — 대시보드로 폴백
+            router.canGoBack()
+              ? router.back()
+              : router.replace({
+                  pathname: '/(app)/(tabs)/home/[id]',
+                  params: { id: String(careTargetId) },
+                })
+          }
           hitSlop={8}
           className="h-11 w-11 items-center justify-center"
           style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}

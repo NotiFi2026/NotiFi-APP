@@ -79,7 +79,9 @@ function seed(): CareTargetSummaryResponse[] {
 
 /** 세션 동안 유지되는 목록 상태 */
 const targets: CareTargetSummaryResponse[] = seed();
-let nextId = targets.reduce((max, t) => Math.max(max, t.care_target_id), 0) + 1;
+// 신규 id는 시나리오와 무관하게 전체 시드 최대값 위에서 시작한다 — 'single'에서 id 2를
+// 재사용하면 devicesMock의 2번 시드(유령 디바이스)를 물려받는 충돌이 있었다.
+let nextId = MULTIPLE.reduce((max, t) => Math.max(max, t.care_target_id), 0) + 1;
 
 /** device_count는 devicesMock 스토어에서 파생 — 마법사 등록이 홈 수치에도 반영된다 */
 function withDerivedCount(target: CareTargetSummaryResponse): CareTargetSummaryResponse {

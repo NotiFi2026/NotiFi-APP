@@ -23,7 +23,10 @@ export function useScreenTransition(kind: ScreenTransitionKind = 'slide') {
 
   return {
     headerShown: false,
-    gestureEnabled: true, // 네이티브 스와이프백 (웹은 원래 없음)
+    // 스와이프백은 일반 push(slide)에만. bottom(응급 풀스크린)은 수직 제스처 한 번에
+    // 닫혀버리므로 금지 — 응급 화면은 명시적 버튼으로만 떠난다. fade(그룹 전환)도 무의미.
+    // 감속 모션이면 애니메이션이 없어 제스처 피드백도 없으므로 함께 끈다.
+    gestureEnabled: kind === 'slide' && !reduceMotion,
     animation: reduceMotion ? ('none' as const) : ANIMATION_BY_KIND[kind],
   };
 }

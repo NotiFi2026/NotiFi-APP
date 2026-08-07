@@ -50,15 +50,18 @@ const STEPS = [
 const ROOM_PRESETS = ['침실', '거실', '화장실', '주방'] as const;
 const CUSTOM_ROOM = '기타';
 
-/** 스텝 인디케이터 — ② 연결은 펌웨어 확정 전까지 건너뛰는 자리임을 라벨로 보여준다 */
+/**
+ * 스텝 인디케이터 — ② 연결은 펌웨어 확정 전까지 건너뛰는 자리다.
+ * 건너뛴 스텝은 어떤 경우에도 "완료"처럼 채워지지 않는다 — dim 자리 표시만.
+ */
 function StepIndicator({ current }: { current: WizardStep }) {
   const activeIndex = current === 'prepare' ? 0 : 2; // 직접 입력 경로는 ①→③
   return (
     <View className="mt-4 flex-row items-center gap-2">
       {STEPS.map((step, index) => {
+        const skipped = step.key === 'connect'; // 직접 입력 경로에서는 항상 건너뜀
         const active = index === activeIndex && current !== 'done';
-        const done = current === 'done' || index < activeIndex;
-        const skipped = step.key === 'connect';
+        const done = !skipped && (current === 'done' || index < activeIndex);
         return (
           <View key={step.key} className="flex-row items-center gap-2">
             {index > 0 ? (
@@ -68,7 +71,7 @@ function StepIndicator({ current }: { current: WizardStep }) {
               className="flex-row items-center gap-1.5 rounded-full px-3 py-1.5"
               style={{
                 backgroundColor: active || done ? 'rgba(255,255,255,0.16)' : 'transparent',
-                opacity: skipped && !done ? 0.5 : 1,
+                opacity: skipped ? 0.5 : 1,
               }}
             >
               <Text variant="caption" tone="inverse">
@@ -207,11 +210,15 @@ export function DeviceRegisterView({ careTargetId }: { careTargetId: number }) {
     );
   };
 
-  const goList = () =>
-    router.replace({
-      pathname: '/(app)/(tabs)/home/[id]/devices',
-      params: { id: String(careTargetId) },
-    });
+  // 온 곳으로 돌아간다 — F-1에서 왔으면 갱신된 목록, C-1에서 왔으면 대시보드(새 칩).
+  // replace로 목록을 새로 쌓으면 뒤로가기가 두 번 필요해지는 중복 스택이 생긴다.
+  const finish = () =>
+    router.canGoBack()
+      ? router.back()
+      : router.replace({
+          pathname: '/(app)/(tabs)/home/[id]/devices',
+          params: { id: String(careTargetId) },
+        });
 
   return (
     <View className="flex-1 bg-canvas">
@@ -373,7 +380,7 @@ export function DeviceRegisterView({ careTargetId }: { careTargetId: number }) {
                       시작됩니다.
                     </Text>
                     <View className="mt-6 self-stretch">
-                      <Button label="디바이스 목록으로" onPress={goList} />
+                      <Button label="완료" onPress={finish} />
                     </View>
                     <View className="mt-1 items-center">
                       <Button

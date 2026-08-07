@@ -12,10 +12,12 @@ import type { ReactNode } from 'react';
 import { Pressable, RefreshControl, ScrollView, StatusBar, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useQueryClient } from '@tanstack/react-query';
+
+import type { CareTargetSummaryResponse } from '@/api/endpoints/careTargets';
 import type { StatusDeviceChip } from '@/api/endpoints/status';
 import type { ApiStepType } from '@/api/endpoints/escalations';
 import { RISK_COLORS, SHADOW_SOFT } from '@/config/theme';
-import { useCareTargetList } from '@/features/careTargets/application/hooks/useCareTargetList';
 import { useCareTargetStatus } from '@/features/careTargets/application/hooks/useCareTargetStatus';
 import { RISK_SENTENCE, riskKey } from '@/features/careTargets/domain/services/risk';
 import { stageGradient } from '@/features/careTargets/presentation/components/StageBackdrop';
@@ -83,16 +85,23 @@ function QuickLink({
 
 export function DashboardView({ id, registered }: { id: number; registered: boolean }) {
   const insets = useSafeAreaInsets();
+  // 잘못된 딥링크(/home/abc 등) — 쿼리가 영원히 pending에 머물지 않게 즉시 에러로 취급
+  const invalidId = !Number.isFinite(id);
   const { data, isPending, isError, refetch, refreshing, refreshByUser } = useCareTargetStatus(id);
   useRefreshOnFocus(refetch);
-  // 이름은 S1에 없다 — 홈 목록 캐시(C2)에서 찾는다 (같은 queryKey 공유라 추가 요청 없음)
-  const { data: targets } = useCareTargetList();
-  const name = targets?.find((t) => t.care_target_id === id)?.name;
+  // 이름은 S1에 없다 — 홈 목록 캐시(C2)를 구독 없이 읽는다.
+  // useCareTargetList()를 마운트하면 30초 폴링 관찰자가 하나 더 생기므로 금지.
+  const queryClient = useQueryClient();
+  const name = queryClient
+    .getQueryData<CareTargetSummaryResponse[]>(['care-targets'])
+    ?.find((t) => t.care_target_id === id)?.name;
 
+  const showError = isError || invalidId;
+  const showPending = isPending && !invalidId;
   const key = riskKey(data?.current_risk_level ?? null);
-  const [light, deep] = stageGradient(isPending || isError ? undefined : key);
+  const [light, deep] = stageGradient(showPending || showError ? undefined : key);
   const devices = data?.devices ?? [];
-  const learning = !isPending && !isError && data?.current_risk_level == null && devices.length > 0;
+  const learning = !showPending && !showError && data?.current_risk_level == null && devices.length > 0;
 
   const goBackHome = () =>
     router.canGoBack() ? router.back() : router.replace('/(app)/(tabs)/home');
@@ -128,16 +137,24 @@ export function DashboardView({ id, registered }: { id: number; registered: bool
               {name ? `${name} 님` : '돌보시는 분'}
             </Text>
             <Text variant="headline" tone="inverse" className="mt-1">
-              {isPending ? '상태 확인 중' : isError ? '연결에 문제가 있어요' : RISK_SENTENCE[key]}
+              {showPending
+                ? '상태 확인 중'
+                : showError
+                  ? '정보를 불러올 수 없어요'
+                  : RISK_SENTENCE[key]}
             </Text>
-            {!isPending && !isError ? (
+            {!showPending && !showError ? (
               <View className="mt-3 flex-row items-center gap-2">
-                <LiveDot />
+                {/* "실시간 감지 중"은 노드가 실제로 있을 때만 — 기기 0개에 라이브 닷은 허위 안심 */}
+                {devices.length > 0 ? <LiveDot /> : null}
                 <Text variant="bodySmall" style={{ color: 'rgba(255,255,255,0.72)' }}>
-                  실시간 감지 중
-                  {data?.last_activity_at
-                    ? ` · 마지막 활동 ${formatRelativeKo(data.last_activity_at)}`
-                    : ' · 감지 기록 없음'}
+                  {devices.length > 0
+                    ? `실시간 감지 중${
+                        data?.last_activity_at
+                          ? ` · 마지막 활동 ${formatRelativeKo(data.last_activity_at)}`
+                          : ' · 감지 기록 없음'
+                      }`
+                    : '노드 설치 전이에요 · 설치하면 감지가 시작됩니다'}
                 </Text>
               </View>
             ) : null}
@@ -199,14 +216,18 @@ export function DashboardView({ id, registered }: { id: number; registered: bool
             </Reveal>
           ) : null}
 
-          {isError ? (
+          {showError ? (
             <Card>
               <Text variant="body" tone="muted" className="text-center">
-                상태를 불러오지 못했어요. 다시 시도해 주세요.
+                {invalidId
+                  ? '찾을 수 없는 정보예요. 홈에서 다시 선택해 주세요.'
+                  : '상태를 불러오지 못했어요. 다시 시도해 주세요.'}
               </Text>
-              <View className="mt-4">
-                <Button label="다시 시도" onPress={() => refetch()} />
-              </View>
+              {!invalidId ? (
+                <View className="mt-4">
+                  <Button label="다시 시도" onPress={() => refetch()} />
+                </View>
+              ) : null}
               <View className="mt-1 items-center">
                 <Button variant="text" label="홈으로" onPress={goBackHome} />
               </View>
@@ -219,11 +240,11 @@ export function DashboardView({ id, registered }: { id: number; registered: bool
                   <View className="flex-row items-baseline justify-between">
                     <Text variant="title">연결된 노드</Text>
                     <Text variant="caption" tone="muted">
-                      {isPending ? '' : `${devices.length}개`}
+                      {showPending ? '' : `${devices.length}개`}
                     </Text>
                   </View>
 
-                  {isPending ? (
+                  {showPending ? (
                     <View className="mt-4 flex-row gap-2">
                       <View className="h-9 w-20 rounded-full bg-surface-sunk" />
                       <View className="h-9 w-20 rounded-full bg-surface-sunk" />
