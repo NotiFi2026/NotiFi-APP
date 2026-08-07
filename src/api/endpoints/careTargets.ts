@@ -8,6 +8,7 @@
 
 import { apiClient } from '@/api/client';
 import { mockCreateCareTarget, mockGetCareTargets } from '@/api/mock/careTargetsMock';
+import { unwrap } from '@/api/unwrap';
 import { USE_MOCK_CARE_TARGETS } from '@/config/env';
 import type { ApiResponse } from '@/shared/types/api';
 
@@ -20,13 +21,6 @@ export interface CareTargetSummaryResponse {
   last_event_at: string | null;
   device_count: number;
   is_primary: boolean;
-}
-
-function unwrap<T>(res: ApiResponse<T>): T {
-  if (!res.success || res.data == null) {
-    throw new Error(res.error?.code ?? 'REQUEST_FAILED');
-  }
-  return res.data;
 }
 
 export async function getCareTargets(): Promise<CareTargetSummaryResponse[]> {
