@@ -48,6 +48,10 @@ yarn-error.*
 /DESIGN.md
 .claude/
 
+# Codex 로컬 설정·컨텍스트
+/.codex
+/AGENTS.md
+
 # FCM 시크릿
 google-services.json
 GoogleService-Info.plist
