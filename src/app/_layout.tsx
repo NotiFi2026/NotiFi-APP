@@ -9,11 +9,13 @@ import { Hahmlet_600SemiBold } from '@expo-google-fonts/hahmlet/600SemiBold';
 import { Hahmlet_700Bold } from '@expo-google-fonts/hahmlet/700Bold';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
-import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DefaultTheme, ThemeProvider } from 'expo-router';
+import { Stack } from 'expo-router/js-stack';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { useScreenTransition } from '@/config/navigation';
 import { BRAND, INK, RISK_COLORS, SURFACE } from '@/config/theme';
 import { subscribeFcmTokenRefresh } from '@/lib/fcm';
 import { useNotificationDeepLink } from '@/lib/notifications'; // side effect: setNotificationHandler 등록
@@ -42,6 +44,8 @@ const notifiTheme = {
 
 export default function RootLayout() {
   useNotificationDeepLink();
+  // 루트는 (auth)↔(app) 그룹 replace라 방향 없는 페이드가 맞다
+  const fade = useScreenTransition('fade');
 
   const [fontsLoaded] = useFonts({
     GothicA1_400Regular,
@@ -65,7 +69,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
         <ThemeProvider value={notifiTheme}>
-          <Stack screenOptions={{ headerShown: false }} />
+          <Stack screenOptions={fade} />
         </ThemeProvider>
       </SafeAreaProvider>
     </QueryClientProvider>
