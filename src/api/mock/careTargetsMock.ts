@@ -18,6 +18,7 @@ import type {
   CareTargetCreateRequest,
   CareTargetSummaryResponse,
 } from '@/api/endpoints/careTargets';
+import { mockDeviceCount } from '@/api/mock/devicesMock';
 
 const MOCK_SCENARIO: 'empty' | 'single' | 'multiple' = 'single';
 
@@ -80,10 +81,21 @@ function seed(): CareTargetSummaryResponse[] {
 const targets: CareTargetSummaryResponse[] = seed();
 let nextId = targets.reduce((max, t) => Math.max(max, t.care_target_id), 0) + 1;
 
+/** device_count는 devicesMock 스토어에서 파생 — 마법사 등록이 홈 수치에도 반영된다 */
+function withDerivedCount(target: CareTargetSummaryResponse): CareTargetSummaryResponse {
+  return { ...target, device_count: mockDeviceCount(target.care_target_id) };
+}
+
 export async function mockGetCareTargets(): Promise<CareTargetSummaryResponse[]> {
   await settle();
   // 서버 정렬(createdAt DESC)과 동일하게 최신 등록이 앞에 온다
-  return [...targets].reverse();
+  return [...targets].reverse().map(withDerivedCount);
+}
+
+/** statusMock이 S1 응답을 합성할 때 쓴다 (지연 없음 — 호출부가 이미 settle) */
+export function mockFindCareTarget(id: number): CareTargetSummaryResponse | undefined {
+  const found = targets.find((t) => t.care_target_id === id);
+  return found ? withDerivedCount(found) : undefined;
 }
 
 /** C1 — 방금 등록한 노인은 위험도 미평가·기기 0개 상태로 시작한다 */
