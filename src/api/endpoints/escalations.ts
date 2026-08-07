@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from '@/api/client';
+import { unwrap } from '@/api/unwrap';
 import type { ApiResponse } from '@/shared/types/api';
 
 export type ApiStepType = 'VOICE_CHECK' | 'GUARDIAN_NOTIFY' | 'EMERGENCY_CALL';
@@ -43,13 +44,6 @@ export interface EscalationDetailResponse {
 export interface EscalationResolveRequest {
   resolution_type: 'GUARDIAN_HANDLED' | 'FALSE_ALARM';
   memo?: string;
-}
-
-function unwrap<T>(res: ApiResponse<T>): T {
-  if (!res.success || res.data == null) {
-    throw new Error(res.error?.code ?? 'REQUEST_FAILED');
-  }
-  return res.data;
 }
 
 export async function getEscalation(escalationId: string): Promise<EscalationDetailResponse> {
