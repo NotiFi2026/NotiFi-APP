@@ -6,7 +6,6 @@
  * 모든 분기가 pull-to-refresh를 가진다. 30초 폴링은 훅이 담당.
  */
 
-import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 import { FlatList, RefreshControl, ScrollView, StatusBar, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,8 +13,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { CareTargetSummaryResponse } from '@/api/endpoints/careTargets';
 import { SHADOW_SOFT } from '@/config/theme';
 import { useCareTargetList } from '@/features/careTargets/application/hooks/useCareTargetList';
-import { RISK_SENTENCE, riskKey, type RiskKey } from '@/features/careTargets/domain/services/risk';
+import type { RiskKey } from '@/features/careTargets/domain/services/risk';
 import { summarizeTargets } from '@/features/careTargets/domain/services/summary';
+import { AddTargetCard } from '@/features/careTargets/presentation/components/AddTargetCard';
 import { CareTargetCard } from '@/features/careTargets/presentation/components/CareTargetCard';
 import { HomeHeader } from '@/features/careTargets/presentation/components/HomeHeader';
 import { HomeSkeleton } from '@/features/careTargets/presentation/components/HomeSkeleton';
@@ -24,27 +24,13 @@ import {
   StageBackdrop,
   stageGradient,
 } from '@/features/careTargets/presentation/components/StageBackdrop';
+import { SingleTargetHome } from '@/features/careTargets/presentation/components/SingleTargetHome';
 import { StatusStage } from '@/features/careTargets/presentation/components/StatusStage';
-import { StatusHero } from '@/features/careTargets/presentation/components/StatusHero';
 import { TAB_BAR_ALLOWANCE } from '@/shared/components/navigation/TabBar';
 import { Button } from '@/shared/components/ui/Button';
 import { Reveal } from '@/shared/components/ui/Reveal';
 import { Text } from '@/shared/components/ui/Text';
 import { useRefreshOnFocus } from '@/shared/hooks/useRefreshOnFocus';
-import { formatRelativeKo } from '@/shared/utils/formatDate';
-
-/** 목록·히어로 하단 공통 — 새 노인 등록 진입 (B-2) */
-function RegisterFooter() {
-  return (
-    <View className="mt-2 items-center pb-2">
-      <Button
-        variant="text"
-        label="+ 새로 등록하기"
-        onPress={() => router.push('/(app)/(tabs)/home/register')}
-      />
-    </View>
-  );
-}
 
 /** 시트 상단 그래버 — 바텀시트 문법 */
 function Grabber() {
@@ -150,38 +136,9 @@ export function HomeView() {
     );
   }
 
+  // 1명이면 홈이 곧 그 사람의 대시보드다 — 상태·응급 콘솔·카드 스택을 한 화면에 편다
   if (targets.length === 1) {
-    const target = targets[0];
-    const key = riskKey(target.current_risk_level);
-    return frame(
-      key,
-      true,
-      <>
-        <HomeHeader />
-        <Reveal index={0}>
-          <StatusStage
-            lead={`${target.name} 님은 지금`}
-            headline={RISK_SENTENCE[key]}
-            sub={
-              target.last_event_at
-                ? `마지막 활동 ${formatRelativeKo(target.last_event_at)}`
-                : '감지 기록 없음'
-            }
-            live
-          />
-        </Reveal>
-        {sheet(
-          <>
-            <Reveal index={1}>
-              <StatusHero target={target} />
-            </Reveal>
-            <Reveal index={2}>
-              <RegisterFooter />
-            </Reveal>
-          </>
-        )}
-      </>
-    );
+    return <SingleTargetHome target={targets[0]} />;
   }
 
   // N명 — FlatList가 스크롤러. 시트는 헤더/아이템/푸터가 이어 그린다 (사이 틈 없음).
@@ -218,8 +175,8 @@ export function HomeView() {
           </View>
         )}
         ListFooterComponent={
-          <View className="flex-1 bg-canvas" style={{ paddingBottom: bottomPad }}>
-            <RegisterFooter />
+          <View className="flex-1 bg-canvas px-5" style={{ paddingBottom: bottomPad }}>
+            <AddTargetCard />
           </View>
         }
         ListFooterComponentStyle={{ flexGrow: 1 }}

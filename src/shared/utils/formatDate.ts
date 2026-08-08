@@ -16,6 +16,21 @@ export function formatRelativeKo(iso: string): string {
   return new Date(at).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
 }
 
+/** "8월 5일 오후 02:14" — 지난 기록처럼 날짜까지 필요한 곳에 쓴다 */
+export function formatKstDateTime(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString('ko-KR', {
+      timeZone: 'Asia/Seoul',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '--';
+  }
+}
+
 export function formatKst(iso: string): string {
   try {
     return new Date(iso).toLocaleTimeString('ko-KR', {

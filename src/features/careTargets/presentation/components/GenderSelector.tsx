@@ -13,10 +13,10 @@ import { useReduceMotion } from '@/shared/hooks/useReduceMotion';
 
 const SEGMENT_PAD = 4;
 
+// 서버 enum에는 OTHER도 있지만 화면에는 남성·여성만 둔다 (제품 결정).
 const OPTIONS: { value: ApiGender; label: string }[] = [
   { value: 'MALE', label: '남성' },
   { value: 'FEMALE', label: '여성' },
-  { value: 'OTHER', label: '기타' },
 ];
 
 export function GenderSelector({

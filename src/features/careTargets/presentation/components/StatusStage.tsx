@@ -3,6 +3,7 @@
  * 비대칭 구도: 신호는 오른쪽 위에서 퍼지고, 말은 왼쪽 아래에서 한다.
  */
 
+import type { ReactNode } from 'react';
 import { View } from 'react-native';
 
 import { LiveDot } from '@/shared/components/ui/LiveDot';
@@ -18,9 +19,18 @@ export interface StatusStageProps {
   live?: boolean;
   /** 두 줄 요약(N명 등) 전용 — 한 단계 작은 타이포로 우측 소나와의 충돌을 피한다 */
   compact?: boolean;
+  /** 무대 안에 이어 붙는 내용 (응급 콘솔 등) — 같은 여백 안에 들어가 문구와 붙어 읽힌다 */
+  children?: ReactNode;
 }
 
-export function StatusStage({ lead, headline, sub, live = false, compact = false }: StatusStageProps) {
+export function StatusStage({
+  lead,
+  headline,
+  sub,
+  live = false,
+  compact = false,
+  children,
+}: StatusStageProps) {
   return (
     <View className="px-6 pb-10" style={{ minHeight: 190, justifyContent: 'flex-end' }}>
       {lead ? (
@@ -39,6 +49,7 @@ export function StatusStage({ lead, headline, sub, live = false, compact = false
           </Text>
         </View>
       ) : null}
+      {children}
     </View>
   );
 }

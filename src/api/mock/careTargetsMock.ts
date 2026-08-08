@@ -20,7 +20,7 @@ import type {
 } from '@/api/endpoints/careTargets';
 import { mockDeviceCount } from '@/api/mock/devicesMock';
 
-const MOCK_SCENARIO: 'empty' | 'single' | 'multiple' = 'single';
+const MOCK_SCENARIO: 'empty' | 'single' | 'multiple' = 'multiple';
 
 const LATENCY_MS = 600;
 

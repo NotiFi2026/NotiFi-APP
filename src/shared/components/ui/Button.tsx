@@ -10,7 +10,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Animated, Pressable, View } from 'react-native';
 
-import { BRAND, INK, RADIUS, SHADOW_SOFT, TEAL } from '@/config/theme';
+import { BRAND, INK, RADIUS, RISK_COLORS, RISK_SURFACES, SHADOW_SOFT, TEAL } from '@/config/theme';
 import { Text } from '@/shared/components/ui/Text';
 import { useReduceMotion } from '@/shared/hooks/useReduceMotion';
 
@@ -18,6 +18,8 @@ export interface ButtonProps {
   label: string;
   onPress: () => void;
   variant?: 'filled' | 'text';
+  /** 되돌리기 어려운 행동(응급 해제 등)은 danger — 채움색만 위험색으로 바뀐다 */
+  tone?: 'brand' | 'danger';
   disabled?: boolean;
   loading?: boolean;
   /** 진행 중 라벨. 지정하지 않으면 label을 그대로 쓴다. */
@@ -28,10 +30,14 @@ export function Button({
   label,
   onPress,
   variant = 'filled',
+  tone = 'brand',
   disabled = false,
   loading = false,
   loadingLabel,
 }: ButtonProps) {
+  const danger = tone === 'danger';
+  const fillColor = danger ? RISK_COLORS.DANGER : TEAL.deep;
+  const restColor = danger ? RISK_SURFACES.DANGER : BRAND.soft;
   const reduceMotion = useReduceMotion();
   // lazy useState = 최초 1회만 생성되는 안정적인 값.
   // useRef(...).current 는 렌더 중 ref 접근이라 react-hooks/refs 위반 (reactCompiler 활성 상태).
@@ -95,7 +101,7 @@ export function Button({
           {/* 호버 시 밑줄 */}
           <Text
             variant="label"
-            tone="brand"
+            tone={danger ? 'danger' : 'brand'}
             style={hovered ? { textDecorationLine: 'underline' } : undefined}
           >
             {shownLabel}
@@ -130,9 +136,9 @@ export function Button({
         accessibilityRole="button"
         accessibilityState={{ disabled: inactive, busy: loading }}
         className="h-[54px] items-center justify-center overflow-hidden"
-        style={{ backgroundColor: BRAND.soft, borderRadius: RADIUS.control }}
+        style={{ backgroundColor: restColor, borderRadius: RADIUS.control }}
       >
-        {/* 진한 청록 채움 — 활성일 때 차오른다 */}
+        {/* 채움색 — 활성일 때 차오른다 */}
         <Animated.View
           pointerEvents="none"
           style={{
@@ -141,7 +147,7 @@ export function Button({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: TEAL.deep,
+            backgroundColor: fillColor,
             opacity: enabledProgress,
           }}
         />
@@ -183,7 +189,7 @@ export function Button({
                 opacity: enabledProgress.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }),
               }}
             >
-              <Text variant="label" tone="brand" className="text-center">
+              <Text variant="label" tone={danger ? 'danger' : 'brand'} className="text-center">
                 {shownLabel}
               </Text>
             </Animated.View>

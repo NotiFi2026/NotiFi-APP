@@ -8,6 +8,7 @@
 import type { CareTargetStatusResponse } from '@/api/endpoints/status';
 import { mockFindCareTarget } from '@/api/mock/careTargetsMock';
 import { mockDevicesOf } from '@/api/mock/devicesMock';
+import { mockActiveEscalationOf } from '@/api/mock/escalationsMock';
 
 const LATENCY_MS = 600;
 
@@ -24,7 +25,9 @@ export async function mockGetCareTargetStatus(
     throw new Error('CARE_TARGET_NOT_FOUND');
   }
 
-  const danger = target.current_risk_level === 'DANGER';
+  // 진행 중 건은 escalationsMock이 단일 출처 — 해제하면 이 배너도 함께 사라진다
+  const active = mockActiveEscalationOf(careTargetId);
+  const currentStep = active?.steps.filter((s) => s.status !== 'PENDING').at(-1);
   return {
     care_target_id: target.care_target_id,
     current_risk_level: target.current_risk_level,
@@ -35,11 +38,11 @@ export async function mockGetCareTargetStatus(
       room: d.room,
       status: d.status,
     })),
-    active_escalation: danger
+    active_escalation: active
       ? {
-          escalation_id: 9001,
-          started_at: new Date(Date.now() - 90_000).toISOString(),
-          current_step_type: 'GUARDIAN_NOTIFY',
+          escalation_id: active.escalation_id,
+          started_at: active.started_at,
+          current_step_type: currentStep?.step_type ?? null,
         }
       : null,
   };
