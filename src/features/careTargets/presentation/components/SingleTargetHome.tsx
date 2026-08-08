@@ -15,6 +15,7 @@ import type { CareTargetSummaryResponse } from '@/api/endpoints/careTargets';
 import { SHADOW_SOFT } from '@/config/theme';
 import { useCareTargetStatus } from '@/features/careTargets/application/hooks/useCareTargetStatus';
 import { RISK_SENTENCE, riskKey } from '@/features/careTargets/domain/services/risk';
+import { AddTargetCard } from '@/features/careTargets/presentation/components/AddTargetCard';
 import { CareTargetPanels } from '@/features/careTargets/presentation/components/CareTargetPanels';
 import { HomeHeader } from '@/features/careTargets/presentation/components/HomeHeader';
 import {
@@ -87,13 +88,16 @@ export function SingleTargetHome({ target }: { target: CareTargetSummaryResponse
               </View>
             </View>
           ) : (
-            <CareTargetPanels
-              careTargetId={target.care_target_id}
-              devices={devices}
-              learning={learning}
-              loading={isPending}
-              revealFrom={1}
-            />
+            <>
+              <CareTargetPanels
+                careTargetId={target.care_target_id}
+                devices={devices}
+                learning={learning}
+                loading={isPending}
+                revealFrom={1}
+              />
+              <AddTargetCard />
+            </>
           )}
         </View>
       </ScrollView>

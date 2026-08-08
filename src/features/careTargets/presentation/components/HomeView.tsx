@@ -15,6 +15,7 @@ import { SHADOW_SOFT } from '@/config/theme';
 import { useCareTargetList } from '@/features/careTargets/application/hooks/useCareTargetList';
 import type { RiskKey } from '@/features/careTargets/domain/services/risk';
 import { summarizeTargets } from '@/features/careTargets/domain/services/summary';
+import { AddTargetCard } from '@/features/careTargets/presentation/components/AddTargetCard';
 import { CareTargetCard } from '@/features/careTargets/presentation/components/CareTargetCard';
 import { HomeHeader } from '@/features/careTargets/presentation/components/HomeHeader';
 import { HomeSkeleton } from '@/features/careTargets/presentation/components/HomeSkeleton';
@@ -174,7 +175,9 @@ export function HomeView() {
           </View>
         )}
         ListFooterComponent={
-          <View className="flex-1 bg-canvas" style={{ paddingBottom: bottomPad }} />
+          <View className="flex-1 bg-canvas px-5" style={{ paddingBottom: bottomPad }}>
+            <AddTargetCard />
+          </View>
         }
         ListFooterComponentStyle={{ flexGrow: 1 }}
       />
