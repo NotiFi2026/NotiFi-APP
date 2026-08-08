@@ -16,11 +16,11 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import type { CareTargetSummaryResponse } from '@/api/endpoints/careTargets';
 import type { StatusDeviceChip } from '@/api/endpoints/status';
-import type { ApiStepType } from '@/api/endpoints/escalations';
 import { RISK_COLORS, SHADOW_SOFT } from '@/config/theme';
 import { useCareTargetStatus } from '@/features/careTargets/application/hooks/useCareTargetStatus';
 import { RISK_SENTENCE, riskKey } from '@/features/careTargets/domain/services/risk';
 import { stageGradient } from '@/features/careTargets/presentation/components/StageBackdrop';
+import { EscalationConsole } from '@/features/escalations/presentation/components/EscalationConsole';
 import { Button } from '@/shared/components/ui/Button';
 import { IconButton } from '@/shared/components/ui/IconButton';
 import { LiveDot } from '@/shared/components/ui/LiveDot';
@@ -30,12 +30,6 @@ import { TAB_BAR_ALLOWANCE } from '@/shared/components/navigation/TabBar';
 import { ArrowLeftIcon, CheckIcon, ChevronRightIcon } from '@/shared/components/ui/icons';
 import { useRefreshOnFocus } from '@/shared/hooks/useRefreshOnFocus';
 import { formatRelativeKo } from '@/shared/utils/formatDate';
-
-const STEP_LABELS: Record<ApiStepType, string> = {
-  VOICE_CHECK: 'AI 음성 확인',
-  GUARDIAN_NOTIFY: '보호자 알림',
-  EMERGENCY_CALL: '119 신고',
-};
 
 const DEVICE_DOT: Record<StatusDeviceChip['status'], string> = {
   ACTIVE: RISK_COLORS.SAFE,
@@ -143,7 +137,14 @@ export function DashboardView({ id, registered }: { id: number; registered: bool
                   ? '정보를 불러올 수 없어요'
                   : RISK_SENTENCE[key]}
             </Text>
-            {!showPending && !showError ? (
+            {/* 응급이 진행 중이면 패널 자체가 상황판이 된다 — 상황을 보려고 탭할 필요가 없다 */}
+            {data?.active_escalation ? (
+              <EscalationConsole
+                escalationId={data.active_escalation.escalation_id}
+                startedAt={data.active_escalation.started_at}
+                currentStepType={data.active_escalation.current_step_type}
+              />
+            ) : !showPending && !showError ? (
               <View className="mt-3 flex-row items-center gap-2">
                 {/* "실시간 감지 중"은 노드가 실제로 있을 때만 — 기기 0개에 라이브 닷은 허위 안심 */}
                 {devices.length > 0 ? <LiveDot /> : null}
@@ -162,45 +163,6 @@ export function DashboardView({ id, registered }: { id: number; registered: bool
         </LinearGradient>
 
         <View className="gap-4 px-5 pt-5">
-          {/* 응급 대응 진행 배너 — 패널이 이미 위험색이라 흰 카드 + 위험색 보더로 분리한다 */}
-          {data?.active_escalation ? (
-            <Reveal index={1}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="응급 대응 상세 보기"
-                onPress={() =>
-                  router.push({
-                    pathname: '/(app)/emergency/[esid]',
-                    params: { esid: String(data.active_escalation!.escalation_id) },
-                  })
-                }
-                className="flex-row items-center gap-3 bg-surface p-5"
-                style={({ pressed }) => [
-                  {
-                    borderRadius: 20,
-                    borderWidth: 1.5,
-                    borderColor: RISK_COLORS.DANGER,
-                    opacity: pressed ? 0.85 : 1,
-                  },
-                  SHADOW_SOFT,
-                ]}
-              >
-                <LiveDot size={9} color={RISK_COLORS.DANGER} />
-                <View className="flex-1">
-                  <Text variant="label" tone="danger">
-                    응급 대응 진행 중
-                  </Text>
-                  <Text variant="caption" tone="muted">
-                    {data.active_escalation.current_step_type
-                      ? `현재 단계 · ${STEP_LABELS[data.active_escalation.current_step_type]}`
-                      : `시작 ${formatRelativeKo(data.active_escalation.started_at)}`}
-                  </Text>
-                </View>
-                <ChevronRightIcon color={RISK_COLORS.DANGER} />
-              </Pressable>
-            </Reveal>
-          ) : null}
-
           {/* 등록 직후 안내 (B-2 → C-1) */}
           {registered ? (
             <Reveal index={1}>
@@ -327,7 +289,15 @@ export function DashboardView({ id, registered }: { id: number; registered: bool
                     }
                   />
                   <QuickLink label="이벤트 기록" />
-                  <QuickLink label="응급 이력" />
+                  <QuickLink
+                    label="응급 이력"
+                    onPress={() =>
+                      router.push({
+                        pathname: '/(app)/(tabs)/home/[id]/escalations',
+                        params: { id: String(id) },
+                      })
+                    }
+                  />
                   <QuickLink label="일일 리포트" />
                   <QuickLink label="보호자 관리" last />
                 </View>
