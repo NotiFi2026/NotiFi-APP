@@ -97,14 +97,6 @@ export const RISK_SURFACES: Record<'SAFE' | 'WARNING' | 'DANGER' | 'UNKNOWN', st
   UNKNOWN: '#F7F6F3',
 };
 
-export type EventType =
-  | 'FALL'
-  | 'INACTIVITY'
-  | 'RESPIRATION_ABNORMAL'
-  | 'ANOMALY'
-  | 'SENSOR_ERROR'
-  | 'NORMAL';
-
 export const RISK_LABELS: Record<'SAFE' | 'WARNING' | 'DANGER' | 'UNKNOWN', string> = {
   SAFE: '안전',
   WARNING: '주의',
@@ -112,11 +104,3 @@ export const RISK_LABELS: Record<'SAFE' | 'WARNING' | 'DANGER' | 'UNKNOWN', stri
   UNKNOWN: '미확인',
 };
 
-export const EVENT_TYPE_LABELS: Record<EventType, string> = {
-  FALL: '낙상 감지',
-  INACTIVITY: '장시간 무활동',
-  RESPIRATION_ABNORMAL: '호흡 이상',
-  ANOMALY: '이상 패턴',
-  SENSOR_ERROR: '센서 오류',
-  NORMAL: '정상',
-};
