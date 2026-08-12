@@ -43,7 +43,10 @@ export function ReplayView({ sensingEventId }: { sensingEventId: number }) {
   const { data, isPending, isError, error, refetch } = usePoseClip(sensingEventId);
   const [stage, setStage] = useState({ width: 0, height: 0 });
 
-  const missing = isError && isPoseClipMissing(error);
+  // 딥링크·오타로 숫자가 아닌 ID가 들어오면 쿼리가 아예 뜨지 않는다.
+  // 그대로 두면 로딩 스피너가 영원히 도는데, 사용자는 느린 것과 구분할 수 없다.
+  const invalidId = !Number.isFinite(sensingEventId) || sensingEventId <= 0;
+  const missing = invalidId || (isError && isPoseClipMissing(error));
   const renderable = data !== undefined && isRenderable(data);
   // 참조가 매 렌더 바뀌면 아래 useMemo가 클립 전체를 다시 훑는다 — 빈 배열도 상수로 고정한다
   const poseRel = renderable ? data.frames.pose_rel : EMPTY_FRAMES;
@@ -83,17 +86,17 @@ export function ReplayView({ sensingEventId }: { sensingEventId: number }) {
         <Text variant="bodySmall" className="mt-1" style={{ color: 'rgba(255,255,255,0.72)' }}>
           {data
             ? `${formatKstDateTime(data.window_start_at)} 무렵`
-            : isError
+            : isError || invalidId
               ? '움직임 기록'
               : '기록을 불러오는 중'}
         </Text>
       </LinearGradient>
 
       <View className="flex-1 justify-center px-5 py-4">
-        {isError ? (
+        {isError || invalidId ? (
           <View className="bg-surface p-6" style={{ borderRadius: 20, ...SHADOW_SOFT }}>
             <Text variant="body" tone="muted" className="text-center">
-              {poseClipErrorMessage(error)}
+              {invalidId ? '기록을 찾을 수 없어요.' : poseClipErrorMessage(error)}
             </Text>
             {/* 클립이 없는 건 오류가 아니라 상태다 — 눌러도 소용없는 재시도 버튼을 두지 않는다 */}
             {missing ? null : (
