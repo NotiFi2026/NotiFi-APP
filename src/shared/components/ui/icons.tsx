@@ -189,6 +189,39 @@ export function ChevronRightIcon({ size = 20, color = INK.muted }: IconProps) {
   );
 }
 
+/** 리플레이 — 재생 (꽉 찬 삼각형: 컨트롤이라 획이 아닌 면으로 그린다) */
+export function PlayIcon({ size = 20, color = INK.base }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M8 5.5 18.5 12 8 18.5V5.5Z" fill={color} stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+/** 리플레이 — 일시정지 */
+export function PauseIcon({ size = 20, color = INK.base }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M9 5.5v13M15 5.5v13" stroke={color} strokeWidth={2.6} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+/** 리플레이 — 처음부터 다시 (반시계 화살표) */
+export function RestartIcon({ size = 20, color = INK.base }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M4.8 12a7.2 7.2 0 1 0 2.3-5.3"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+      />
+      <Path d="M4.4 3.6v3.9h3.9" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 /** 사회복지사 — 사람 둘 */
 export function PeopleGroupIcon({ size = 20, color = INK.muted }: IconProps) {
   return (

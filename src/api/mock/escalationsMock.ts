@@ -61,6 +61,7 @@ function activeEscalation(): EscalationDetailResponse {
     care_target_id: 3,
     care_target_name: '이복례',
     event_type: 'FALL',
+    sensing_event_id: 7003,
     steps: [
       step(1, 9001, {
         step_type: 'VOICE_CHECK',
@@ -90,7 +91,8 @@ function resolvedEscalation(
   eventType: string,
   startedDaysAgo: number,
   resolutionType: EscalationDetailResponse['resolution_type'],
-  memo: string | null
+  memo: string | null,
+  sensingEventId: number
 ): EscalationDetailResponse {
   const started = daysAgo(startedDaysAgo);
   return {
@@ -103,6 +105,7 @@ function resolvedEscalation(
     care_target_id: careTargetId,
     care_target_name: careTargetName,
     event_type: eventType,
+    sensing_event_id: sensingEventId,
     steps: [
       step(id * 10 + 1, id, {
         step_type: 'VOICE_CHECK',
@@ -128,13 +131,15 @@ function resolvedEscalation(
 
 /** care_target_id → 에스컬레이션 목록 (최신순으로 내보낸다) */
 const store = new Map<number, EscalationDetailResponse[]>([
-  [1, [resolvedEscalation(8801, 1, '김순자', 'INACTIVITY', 6, 'SELF_RESOLVED', null)]],
+  // sensing_event_id는 eventsMock의 이벤트와 짝이 맞아야 한다 — 상세의 "다시 보기"가
+  // 기록 탭 ▶와 같은 클립으로 가야 목이 앞뒤가 맞는다. 8801은 클립 없는 옛 이벤트다.
+  [1, [resolvedEscalation(8801, 1, '김순자', 'INACTIVITY', 6, 'SELF_RESOLVED', null, 7000)]],
   [
     3,
     [
       activeEscalation(),
-      resolvedEscalation(8802, 3, '이복례', 'FALL', 2, 'GUARDIAN_HANDLED', '직접 방문해 확인했어요.'),
-      resolvedEscalation(8803, 3, '이복례', 'ANOMALY', 11, 'FALSE_ALARM', null),
+      resolvedEscalation(8802, 3, '이복례', 'FALL', 2, 'GUARDIAN_HANDLED', '직접 방문해 확인했어요.', 7002),
+      resolvedEscalation(8803, 3, '이복례', 'ANOMALY', 11, 'FALSE_ALARM', null, 7001),
     ],
   ],
 ]);

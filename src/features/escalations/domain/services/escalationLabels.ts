@@ -44,21 +44,6 @@ export const ESCALATION_STATUS_LABELS: Record<ApiEscalationStatus, string> = {
   CANCELLED: '취소됨',
 };
 
-/** 이벤트 종류 — 서버가 문자열로 주므로 모르는 값은 그대로 보여준다 */
-const EVENT_TYPE_LABELS: Record<string, string> = {
-  FALL: '낙상 감지',
-  INACTIVITY: '장시간 무활동',
-  RESPIRATION_ABNORMAL: '호흡 이상',
-  ANOMALY: '이상 패턴',
-  SENSOR_ERROR: '센서 오류',
-  NORMAL: '정상',
-};
-
-export function eventTypeLabel(eventType: string | null): string {
-  if (!eventType) return '이상 감지';
-  return EVENT_TYPE_LABELS[eventType] ?? eventType;
-}
-
 export const escalationErrorMessage = createErrorMessage(
   {
     ESCALATION_ALREADY_RESOLVED: '이미 처리된 응급 상황입니다.',

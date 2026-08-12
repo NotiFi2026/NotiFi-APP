@@ -15,11 +15,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RISK_COLORS, SHADOW_SOFT, TEAL } from '@/config/theme';
 import { useElapsed } from '@/features/escalations/application/hooks/useElapsed';
 import { useEscalationDetail } from '@/features/escalations/application/hooks/useEscalationDetail';
+import { eventTypeLabel } from '@/features/events/domain/services/eventLabels';
 import {
   ESCALATION_STATUS_LABELS,
   RESOLUTION_LABELS,
   escalationErrorMessage,
-  eventTypeLabel,
 } from '@/features/escalations/domain/services/escalationLabels';
 import { ResolveAction } from '@/features/escalations/presentation/components/ResolveAction';
 import { StepTimeline } from '@/features/escalations/presentation/components/StepTimeline';
@@ -118,9 +118,37 @@ export function EscalationDetailView({ escalationId }: { escalationId: string })
 
           {data ? (
             <>
+              {/* 사고 순간 리플레이 — 진행 중이면 상황 판단 근거이고, 종료된 뒤엔 기록이다.
+                  클립 유무는 E2에 없으므로(has_replay는 S2 필드) 이벤트가 있으면 열어보게 하고,
+                  없으면 리플레이 화면이 "다시 볼 수 있는 기록이 없어요"로 받는다. */}
+              {data.sensing_event_id ? (
+                <Reveal index={1}>
+                  <View className="bg-surface p-5" style={{ borderRadius: 20, ...SHADOW_SOFT }}>
+                    <Text variant="label">사고 순간 다시 보기</Text>
+                    <Text variant="bodySmall" tone="muted" className="mt-1">
+                      카메라 영상이 아니라 WiFi 신호로 복원한 움직임이에요.
+                    </Text>
+                    <View className="mt-3 items-start">
+                      {/* 응급 맥락에서 청록 채움 버튼은 "괜찮다"로 오독된다. 해제 CTA가 유일한
+                          주 버튼으로 남도록 여기는 텍스트 버튼으로 한 단계 낮춘다. */}
+                      <Button
+                        variant="text"
+                        label="움직임 보기"
+                        onPress={() =>
+                          router.push({
+                            pathname: '/(app)/replay/[eventId]',
+                            params: { eventId: String(data.sensing_event_id) },
+                          })
+                        }
+                      />
+                    </View>
+                  </View>
+                </Reveal>
+              ) : null}
+
               {/* 해제 결과 — 종료된 건에서만 */}
               {!active && data.resolution_type ? (
-                <Reveal index={1}>
+                <Reveal index={2}>
                   <View className="bg-surface p-5" style={{ borderRadius: 20, ...SHADOW_SOFT }}>
                     <View className="flex-row items-center gap-2">
                       <CheckIcon size={18} />
@@ -141,7 +169,7 @@ export function EscalationDetailView({ escalationId }: { escalationId: string })
               ) : null}
 
               {/* 단계 타임라인 — 예정 단계까지 전부 */}
-              <Reveal index={2}>
+              <Reveal index={3}>
                 <View className="bg-surface p-5" style={{ borderRadius: 20, ...SHADOW_SOFT }}>
                   <Text variant="title" className="mb-4">
                     대응 단계
@@ -152,7 +180,7 @@ export function EscalationDetailView({ escalationId }: { escalationId: string })
 
               {/* 진행 중일 때만 해제 CTA */}
               {active ? (
-                <Reveal index={3}>
+                <Reveal index={4}>
                   <View className="bg-surface p-5" style={{ borderRadius: 20, ...SHADOW_SOFT }}>
                     <Text variant="label">상황을 확인하셨나요?</Text>
                     <Text variant="bodySmall" tone="muted" className="mt-1">

@@ -46,6 +46,8 @@ export interface EscalationDetailResponse {
   care_target_id: number | null;
   care_target_name: string | null;
   event_type: string | null;
+  /** 이 응급을 유발한 감지 이벤트 — 상세에서 리플레이(S3)를 여는 유일한 경로 */
+  sensing_event_id: number | null;
   steps: EscalationStepResponse[];
 }
 

@@ -18,3 +18,11 @@ export const USE_MOCK_AUTH = process.env.EXPO_PUBLIC_USE_MOCK_AUTH === 'true';
  * care-targets API가 붙으면 이 변수와 src/api/mock/careTargetsMock.ts를 함께 지운다.
  */
 export const USE_MOCK_CARE_TARGETS = process.env.EXPO_PUBLIC_USE_MOCK_CARE_TARGETS === 'true';
+
+/**
+ * 복원 클립(S3) 목킹. 노인 스코프 API와 플래그를 나눈 이유는 착지 시점이 다르기 때문이다 —
+ * S3는 서버 구현이 끝났지만 AI가 I5로 클립을 적재한 적이 없어, 실이벤트가 흐르는 중에도
+ * 리플레이만 목이어야 하는 기간이 있다.
+ * AI가 클립을 적재하기 시작하면 이 변수와 src/api/mock/poseClipMock.ts(+fixtures)를 함께 지운다.
+ */
+export const USE_MOCK_POSE_CLIP = process.env.EXPO_PUBLIC_USE_MOCK_POSE_CLIP === 'true';
