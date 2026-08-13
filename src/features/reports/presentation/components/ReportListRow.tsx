@@ -27,8 +27,8 @@ export const ReportListRow = memo(function ReportListRow({ item }: { item: Daily
       accessibilityLabel={`${item.report_date} 리포트 보기`}
       onPress={() =>
         router.push({
-          pathname: '/(app)/(tabs)/home/[id]/reports/[rid]',
-          params: { id: String(item.care_target_id), rid: String(item.report_id) },
+          pathname: '/(app)/reports/[rid]',
+          params: { careTargetId: String(item.care_target_id), rid: String(item.report_id) },
         })
       }
       style={({ pressed }) => [

@@ -12,6 +12,7 @@ export default function AppLayout() {
       {/* 응급 풀스크린은 아래에서 덮치듯 등장한다 */}
       <Stack.Screen name="emergency/[esid]" options={bottom} />
       <Stack.Screen name="replay/[eventId]" options={bottom} />
+      <Stack.Screen name="reports/[rid]" options={bottom} />
     </Stack>
   );
 }
