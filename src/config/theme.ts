@@ -72,7 +72,6 @@ export const FONT = {
   medium: 'GothicA1_500Medium',
   bold: 'GothicA1_700Bold',
   // 헤드라인 전용 명조 대비 서체 (Hahmlet). display·headline에만 쓴다.
-  serifSemi: 'Hahmlet_600SemiBold',
   serifBold: 'Hahmlet_700Bold',
 } as const;
 

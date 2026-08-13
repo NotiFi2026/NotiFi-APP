@@ -44,6 +44,16 @@ const VARIANT_FONT: Record<TextVariant, string> = {
   eyebrow: FONT.medium,
 };
 
+/**
+ * 시스템 글꼴 크기 배율 상한 — display·headline만 제한한다.
+ * 본문·라벨은 그대로 스케일하되, 44px display가 최대 배율(2.0)에서 88px이 되면
+ * 인증 패널 구성이 무너지므로 큰 역할만 완만하게 따라간다.
+ */
+const VARIANT_MAX_SCALE: Partial<Record<TextVariant, number>> = {
+  display: 1.2,
+  headline: 1.3,
+};
+
 const TONE_CLASS: Record<TextTone, string> = {
   base: 'text-ink',
   muted: 'text-ink-muted',
@@ -63,6 +73,7 @@ export function Text({ variant = 'body', tone = 'base', className, style, ...res
     <RNText
       className={`${VARIANT_CLASS[variant]} ${TONE_CLASS[tone]} ${className ?? ''}`}
       style={[{ fontFamily: VARIANT_FONT[variant] }, style]}
+      maxFontSizeMultiplier={VARIANT_MAX_SCALE[variant]}
       {...rest}
     />
   );
