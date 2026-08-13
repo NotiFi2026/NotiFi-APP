@@ -8,6 +8,7 @@ import { router } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
 import { useDailyReportDetail } from '@/features/reports/application/hooks/useDailyReportDetail';
+import { ReportMetricsCard } from '@/features/reports/presentation/components/ReportMetricsCard';
 import { ReportSectionCard } from '@/features/reports/presentation/components/ReportSectionCard';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Badge } from '@/shared/components/ui/Badge';
@@ -68,6 +69,10 @@ export function ReportDetailView({ careTargetId, reportId }: { careTargetId: num
               <ReportSectionCard section={section} />
             </Reveal>
           ))}
+
+          <Reveal index={report.sections.length}>
+            <ReportMetricsCard metrics={report.metrics} />
+          </Reveal>
         </View>
       )}
     </Screen>

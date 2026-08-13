@@ -7,7 +7,9 @@
 import { isAxiosError } from 'axios';
 
 import { apiClient } from '@/api/client';
+import { mockGetPoseClip } from '@/api/mock/poseClipMock';
 import { unwrap } from '@/api/unwrap';
+import { USE_MOCK_CARE_TARGETS } from '@/config/env';
 import type { ApiResponse } from '@/shared/types/api';
 
 /** smpl-22 스키마 frames 페이로드 — pipeline.py의 _build_pose_clip_payload와 동일한 키. */
@@ -38,6 +40,8 @@ export interface PoseClipResponse {
 
 /** S3. 클립이 없으면(NORMAL 이벤트 등) null. */
 export async function getPoseClip(sensingEventId: number): Promise<PoseClipResponse | null> {
+  if (USE_MOCK_CARE_TARGETS) return mockGetPoseClip(sensingEventId);
+
   try {
     const { data } = await apiClient.get<ApiResponse<PoseClipResponse>>(
       `/sensing-events/${sensingEventId}/pose-clip`

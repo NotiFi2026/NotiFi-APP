@@ -5,8 +5,10 @@
  */
 
 import { apiClient } from '@/api/client';
+import { mockGetEvents } from '@/api/mock/sensingEventsMock';
 import { unwrap } from '@/api/unwrap';
 import type { ApiRiskLevel } from '@/api/endpoints/careTargets';
+import { USE_MOCK_CARE_TARGETS } from '@/config/env';
 import type { EventType } from '@/config/theme';
 import type { ApiResponse, Paginated } from '@/shared/types/api';
 
@@ -55,6 +57,8 @@ export async function getEvents(
   careTargetId: number,
   params?: GetEventsParams
 ): Promise<Paginated<SensingEventSummaryResponse>> {
+  if (USE_MOCK_CARE_TARGETS) return mockGetEvents(careTargetId, params);
+
   const { data } = await apiClient.get<ApiResponse<Paginated<SensingEventSummaryResponse>>>(
     `/care-targets/${careTargetId}/events`,
     { params }
