@@ -15,6 +15,10 @@ import { useAuthStore } from '@/features/auth/application/store/authStore';
 import { RISK_SENTENCE, riskKey } from '@/features/careTargets/domain/services/risk';
 import { useCareTargetStatus } from '@/features/careTargets/application/hooks/useCareTargetStatus';
 import { RISK_COLORS, RISK_SURFACES, SHADOW_SOFT, SURFACE } from '@/config/theme';
+import {
+  PushPermissionCard,
+  RECIPIENT_PUSH_REASON,
+} from '@/features/notifications/presentation/components/PushPermissionCard';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
@@ -67,6 +71,9 @@ export function RecipientHomeView() {
         <Text variant="body" tone="muted">
           {user?.name ? `${user.name} 님` : '안녕하세요'}
         </Text>
+
+        {/* 알림이 꺼져 있으면 안부를 여쭐 수 없다 — 이 화면의 존재 이유가 사라진다 */}
+        <PushPermissionCard body={RECIPIENT_PUSH_REASON} />
 
         {active ? (
           <View

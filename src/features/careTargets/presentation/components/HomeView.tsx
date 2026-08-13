@@ -26,6 +26,10 @@ import {
 } from '@/features/careTargets/presentation/components/StageBackdrop';
 import { SingleTargetHome } from '@/features/careTargets/presentation/components/SingleTargetHome';
 import { StatusStage } from '@/features/careTargets/presentation/components/StatusStage';
+import {
+  GUARDIAN_PUSH_REASON,
+  PushPermissionCard,
+} from '@/features/notifications/presentation/components/PushPermissionCard';
 import { TAB_BAR_ALLOWANCE } from '@/shared/components/navigation/TabBar';
 import { Button } from '@/shared/components/ui/Button';
 import { Reveal } from '@/shared/components/ui/Reveal';
@@ -164,6 +168,9 @@ export function HomeView() {
             {/* 시트의 시작 — 둥근 어깨 + 그래버 */}
             <View className="rounded-t-[32px] bg-canvas">
               <Grabber />
+              <View className="px-5">
+                <PushPermissionCard body={GUARDIAN_PUSH_REASON} />
+              </View>
             </View>
           </>
         }
