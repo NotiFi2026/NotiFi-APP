@@ -16,45 +16,50 @@
 import { useEffect } from 'react';
 
 import { refreshSession } from '@/api/endpoints/auth';
-import { restoreSession } from '@/features/auth/application/session';
 import { useAuthStore } from '@/features/auth/application/store/authStore';
-import { clearTokens, getRefreshToken, getSessionUser } from '@/lib/secureStore';
+import { clearTokens, getRefreshToken, getSessionUser, setTokens } from '@/lib/secureStore';
 
 /** ui-spec A-1: 최대 5초 */
 const MAX_WAIT_MS = 5000;
 
 export function useSessionRestore(): void {
   useEffect(() => {
-    // 타임아웃과 복원 작업이 서로를 덮어쓰지 않게 먼저 잡은 쪽만 결과를 확정한다
+    // 타임아웃이 먼저 끝냈으면 뒤늦게 세션을 되살리지 않는다.
+    // 반대로 **실패 확정은 이 플래그로 막지 않는다** — clearSession은 멱등하고,
+    // 막았다가는 성공 직전에 터진 예외가 status를 'restoring'에 영구히 묶는다.
     let settled = false;
-    const claim = () => {
-      if (settled) return false;
+
+    const failClosed = () => {
       settled = true;
-      return true;
+      clearTimeout(forceTimer);
+      useAuthStore.getState().clearSession();
     };
 
-    const markLoggedOut = () => {
-      if (claim()) useAuthStore.getState().clearSession();
-    };
-
-    const forceTimer = setTimeout(markLoggedOut, MAX_WAIT_MS);
+    const forceTimer = setTimeout(failClosed, MAX_WAIT_MS);
 
     (async () => {
       try {
         const [refreshToken, user] = await Promise.all([getRefreshToken(), getSessionUser()]);
         if (!refreshToken || !user) {
-          markLoggedOut();
+          failClosed();
           return;
         }
 
         const tokens = await refreshSession(refreshToken);
-        // 5초를 넘겨 이미 로그아웃으로 확정됐다면 뒤늦게 되살리지 않는다
-        if (!claim()) return;
-        // restoreSession이 setSession까지 하므로 상태는 authenticated가 된다
-        await restoreSession(tokens.access_token, tokens.refresh_token, user);
+
+        // 서버는 갱신 시 리프레시 토큰을 **회전**시킨다(AuthService.refresh). 즉 이 줄에 닿은 순간
+        // 저장해 둔 옛 토큰은 이미 죽었다. 5초를 넘겨 로그인 화면으로 떨어졌더라도 새 토큰을
+        // 저장해야 다음 실행에서 자동 로그인이 살아난다 — 안 그러면 네트워크가 한 번 느린 것만으로
+        // 세션이 끊긴다. 노인 계정은 스스로 다시 로그인할 수 없어 특히 치명적이다.
+        await setTokens(tokens.access_token, tokens.refresh_token);
+
+        if (settled) return;
+        settled = true;
+        clearTimeout(forceTimer);
+        useAuthStore.getState().setSession(tokens.access_token, user);
       } catch {
         await clearTokens();
-        markLoggedOut();
+        failClosed();
       }
     })();
 
