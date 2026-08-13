@@ -170,7 +170,10 @@ export function HomeView() {
         renderItem={({ item, index }) => (
           <View className="bg-canvas px-5 pb-4">
             <Reveal index={Math.min(index + 1, 5)}>
-              <CareTargetCard target={item} />
+              {/* 위험도가 바뀌면(특히 DANGER→그 외) 통째로 다시 마운트한다 — 웹에서
+                  NativeWind가 tone 전환 시 이전 유틸리티 클래스(text-ink-inverse)를 안 지우고
+                  덧붙여서 이름 글자색이 흰색으로 남는 문제가 있었다(실측으로 확인). */}
+              <CareTargetCard key={item.current_risk_level ?? 'UNKNOWN'} target={item} />
             </Reveal>
           </View>
         )}
