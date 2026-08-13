@@ -20,6 +20,8 @@ export interface NotificationResponse {
   created_at: string;
   care_target_id: number | null;
   escalation_step_id: number | null;
+  /** EscalationStep 조인으로 채워진다 — emergency/[esid] 딥링크용. 응급 외 알림은 null. */
+  escalation_id: number | null;
 }
 
 export interface GetNotificationsParams {

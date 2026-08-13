@@ -1,9 +1,6 @@
 /**
  * 알림 카드 — 카테고리 아이콘·제목·본문·노인 이름·상대시각, 미읽음은 굵게+점.
- *
- * 응급 알림 탭 시 D-1 상세로 딥링크할 계획이었으나(로드맵 T1-1), NotificationResponse에는
- * escalation_step_id만 있고 emergency/[esid] 라우트가 기대하는 escalation_id가 없다 —
- * PRODUCT.md가 이미 플래그해 둔 문서 간 불일치. 그 필드가 확정되기 전까진 읽음 처리만 한다.
+ * 응급 알림은 escalation_id가 있으면(서버가 EscalationStep을 조인해 채운다) D-1 상세로 딥링크한다.
  */
 
 import { memo } from 'react';

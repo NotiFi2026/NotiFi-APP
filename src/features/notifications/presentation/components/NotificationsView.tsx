@@ -3,6 +3,7 @@
  * 카테고리 필터 탭 + 무한 스크롤 목록. 탭하면 N2로 읽음 처리.
  */
 
+import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
 
@@ -115,6 +116,12 @@ export function NotificationsView() {
               careTargetName={item.care_target_id ? nameById.get(item.care_target_id) : undefined}
               onPress={(n) => {
                 if (!n.is_read) markRead.mutate(n.notification_id);
+                if (n.category === 'EMERGENCY' && n.escalation_id != null) {
+                  router.push({
+                    pathname: '/(app)/emergency/[esid]',
+                    params: { esid: String(n.escalation_id) },
+                  });
+                }
               }}
             />
           </Reveal>
