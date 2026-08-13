@@ -4,7 +4,7 @@
 
 import { useLocalSearchParams } from 'expo-router';
 
-import { EventListView } from '@/features/records/presentation/components/EventListView';
+import { EventListView } from '@/features/events/presentation/components/EventListView';
 
 export default function EventListScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();

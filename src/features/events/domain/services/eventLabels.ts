@@ -24,7 +24,7 @@ export function eventTypeLabel(eventType: string | null): string {
 }
 
 /** v1 모델 17종. 선택 필드라 null이면 event_type 라벨로 떨어진다 */
-const ACTIVITY_CLASS_LABELS: Record<ApiActivityClass, string> = {
+export const ACTIVITY_CLASS_LABELS: Record<ApiActivityClass, string> = {
   // safe (9)
   WALKING: '걷는 중',
   STANDING_STILL: '서 있음',

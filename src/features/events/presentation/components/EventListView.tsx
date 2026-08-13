@@ -6,8 +6,8 @@
 import { router } from 'expo-router';
 import { FlatList, Pressable, View } from 'react-native';
 
-import { useEventList } from '@/features/records/application/hooks/useEventList';
-import { SensingEventCard } from '@/features/records/presentation/components/SensingEventCard';
+import { useEventList } from '@/features/events/application/hooks/useEventList';
+import { EventCard } from '@/features/events/presentation/components/EventCard';
 import { Screen } from '@/shared/components/layout/Screen';
 import { TAB_BAR_ALLOWANCE } from '@/shared/components/navigation/TabBar';
 import { Button } from '@/shared/components/ui/Button';
@@ -66,7 +66,7 @@ export function EventListView({ careTargetId }: { careTargetId: number }) {
           keyExtractor={(item) => String(item.sensing_event_id)}
           renderItem={({ item }) => (
             <View className="px-5 pb-4">
-              <SensingEventCard item={item} />
+              <EventCard item={item} />
             </View>
           )}
           contentContainerStyle={{ paddingTop: 8, paddingBottom: TAB_BAR_ALLOWANCE + 12 }}

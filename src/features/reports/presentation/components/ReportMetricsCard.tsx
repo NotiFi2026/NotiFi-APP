@@ -7,7 +7,7 @@ import { View } from 'react-native';
 
 import type { DailyReportMetrics } from '@/api/endpoints/reports';
 import { RADIUS, RISK_COLORS, RISK_SURFACES, SHADOW_SOFT, SURFACE } from '@/config/theme';
-import { ACTIVITY_CLASS_LABELS } from '@/features/records/domain/services/eventLabels';
+import { ACTIVITY_CLASS_LABELS } from '@/features/events/domain/services/eventLabels';
 import { Text } from '@/shared/components/ui/Text';
 
 type Tier = 'safe' | 'warning' | 'danger';
