@@ -189,6 +189,15 @@ export function ChevronRightIcon({ size = 20, color = INK.muted }: IconProps) {
   );
 }
 
+/** 재생 — 감지 이벤트 카드의 리플레이(C-3) 진입 버튼 */
+export function PlayIcon({ size = 18, color = INK.base }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M8 5.5v13l11-6.5-11-6.5Z" fill={color} />
+    </Svg>
+  );
+}
+
 /** 사회복지사 — 사람 둘 */
 export function PeopleGroupIcon({ size = 20, color = INK.muted }: IconProps) {
   return (

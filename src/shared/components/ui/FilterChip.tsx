@@ -14,6 +14,10 @@ export interface FilterChipProps {
   onPress: () => void;
 }
 
+// label variant의 lineHeight(20) + paddingVertical(9*2) — 라벨 글자마다 폰트 메트릭이
+// 미세하게 달라 패딩만으로 감싸면 칩끼리 1~2px씩 높이가 어긋나 보인다. 높이를 못박아 통일한다.
+const CHIP_HEIGHT = 38;
+
 export function FilterChip({ label, selected, onPress }: FilterChipProps) {
   return (
     <Pressable
@@ -21,8 +25,9 @@ export function FilterChip({ label, selected, onPress }: FilterChipProps) {
       accessibilityRole="button"
       accessibilityState={{ selected }}
       style={({ pressed }) => ({
+        height: CHIP_HEIGHT,
+        justifyContent: 'center',
         paddingHorizontal: 14,
-        paddingVertical: 9,
         borderRadius: RADIUS.control,
         backgroundColor: selected ? BRAND.soft : SURFACE.sunk,
         opacity: pressed ? 0.85 : 1,
