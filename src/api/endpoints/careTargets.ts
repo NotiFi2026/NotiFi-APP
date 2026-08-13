@@ -10,7 +10,7 @@ import { apiClient } from '@/api/client';
 import { mockCreateCareTarget, mockGetCareTargets } from '@/api/mock/careTargetsMock';
 import { unwrap } from '@/api/unwrap';
 import { USE_MOCK_CARE_TARGETS } from '@/config/env';
-import type { ApiResponse } from '@/shared/types/api';
+import type { ApiResponse, Paginated } from '@/shared/types/api';
 
 export type ApiRiskLevel = 'SAFE' | 'WARNING' | 'DANGER';
 
@@ -26,8 +26,12 @@ export interface CareTargetSummaryResponse {
 export async function getCareTargets(): Promise<CareTargetSummaryResponse[]> {
   if (USE_MOCK_CARE_TARGETS) return mockGetCareTargets();
 
-  const { data } = await apiClient.get<ApiResponse<CareTargetSummaryResponse[]>>('/care-targets');
-  return unwrap(data);
+  // 서버는 C2를 페이지네이션 envelope으로 반환한다 (배열 아님) — 실서버로 처음 테스트할 때
+  // targets.filter is not a function으로 HomeView가 크래시하는 걸로 드러났다.
+  const { data } = await apiClient.get<ApiResponse<Paginated<CareTargetSummaryResponse>>>(
+    '/care-targets'
+  );
+  return unwrap(data).content;
 }
 
 export type ApiGender = 'MALE' | 'FEMALE' | 'OTHER';
