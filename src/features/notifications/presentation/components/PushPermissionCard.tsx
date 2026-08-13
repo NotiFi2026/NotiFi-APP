@@ -26,7 +26,18 @@ export const GUARDIAN_PUSH_REASON =
 export const RECIPIENT_PUSH_REASON =
   '알림을 켜야 안부를 여쭐 수 있어요. 꺼져 있으면 여쭙지 못한 채로 보호자에게 연락이 갑니다.';
 
-export function PushPermissionCard({ body }: { body: string }) {
+/**
+ * @param emphasis 'strong'이면 채운 버튼으로 낸다.
+ *   노인 화면에서는 작은 텍스트 링크를 누르기 어렵고, **이걸 못 누르면 안부 확인 자체가
+ *   성립하지 않는다.** 보호자 화면은 다른 카드가 많아 조용한 텍스트 버튼이 맞다.
+ */
+export function PushPermissionCard({
+  body,
+  emphasis = 'quiet',
+}: {
+  body: string;
+  emphasis?: 'quiet' | 'strong';
+}) {
   const { needsAttention, canAsk, request } = usePushPermission();
 
   if (!needsAttention) return null;
@@ -47,7 +58,7 @@ export function PushPermissionCard({ body }: { body: string }) {
 
       <Button
         label={canAsk ? '알림 켜기' : '설정에서 켜기'}
-        variant="text"
+        variant={emphasis === 'strong' ? 'filled' : 'text'}
         onPress={() => void request()}
       />
     </View>

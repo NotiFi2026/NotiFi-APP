@@ -73,7 +73,7 @@ export function RecipientHomeView() {
         </Text>
 
         {/* 알림이 꺼져 있으면 안부를 여쭐 수 없다 — 이 화면의 존재 이유가 사라진다 */}
-        <PushPermissionCard body={RECIPIENT_PUSH_REASON} />
+        <PushPermissionCard body={RECIPIENT_PUSH_REASON} emphasis="strong" />
 
         {active ? (
           <View
@@ -113,6 +113,17 @@ export function RecipientHomeView() {
         <Text variant="bodySmall" tone="muted" className="px-1">
           카메라 없이 WiFi 신호로만 확인합니다. 사진이나 영상은 찍지 않아요.
         </Text>
+
+        {/* 계정을 잘못 연결했을 때의 유일한 탈출구. 맨 아래에 작게 둔다 —
+            노인이 실수로 누르면 보호자가 새 연결코드를 발급해 줄 때까지 아무것도 못 한다. */}
+        <View className="items-center pt-4">
+          <Button
+            variant="text"
+            label="다른 코드로 연결하기"
+            loading={logout.isPending}
+            onPress={() => logout.mutate()}
+          />
+        </View>
       </ScrollView>
     </Screen>
   );
