@@ -22,7 +22,7 @@ import { Text } from '@/shared/components/ui/Text';
 import { TextField } from '@/shared/components/ui/TextField';
 import { ArrowLeftIcon } from '@/shared/components/ui/icons';
 
-/** 서버 InviteCodeStore.CODE_LENGTH와 맞춘다 */
+/** 서버 InviteCodeStore.CODE_LENGTH와 맞춘다 (문자셋은 0·O·I·l·1을 뺀 대문자+숫자) */
 const CODE_LENGTH = 8;
 
 export function RecipientCodeView() {
@@ -59,9 +59,10 @@ export function RecipientCodeView() {
         <TextField
           label="연결코드"
           value={code}
-          onChangeText={setCode}
-          // 서버가 대문자·숫자 8자로 만든다(InviteCodeStore.CODE_LENGTH). 소문자로 쳐도 통하게
-          // 대문자로 올리고, 길이를 막아 오타를 줄인다. 문자가 섞이므로 숫자 키패드는 쓰지 않는다.
+          // 값 자체를 대문자로 올린다. 서버 코드는 대문자·숫자뿐이고(InviteCodeStore.CHARS)
+          // Redis 키를 그대로 조회해 **대소문자를 가린다.** autoCapitalize는 키보드 힌트일 뿐
+          // 값을 바꾸지 않아서, 붙여넣기나 일부 키보드에선 소문자가 그대로 들어가 실패한다.
+          onChangeText={(next) => setCode(next.toUpperCase())}
           autoCapitalize="characters"
           autoComplete="off"
           maxLength={CODE_LENGTH}

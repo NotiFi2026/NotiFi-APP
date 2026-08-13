@@ -5,6 +5,9 @@
  * 그래서 선택지를 하나만 둔다. "괜찮지 않다"는 버튼은 없다 — 안 누르면 에스컬레이션이
  * 그대로 다음 단계(보호자 알림 → 119)로 진행되므로, 무응답이 곧 도움 요청이다.
  * 잘못 눌러 위험을 지우는 쪽이 훨씬 나쁘다.
+ *
+ * **E2 상세 조회는 장식이다.** E4(self-ok)는 escalation id만 있으면 되므로, 상세가 느리거나
+ * 실패해도 '괜찮아요'는 눌려야 한다. 여기서 못 누르면 119까지 올라간다.
  */
 
 import { router } from 'expo-router';
@@ -25,28 +28,48 @@ function leaveToHome() {
   else router.replace('/(recipient)');
 }
 
+function Centered({ title, body }: { title: string; body: string }) {
+  return (
+    <Screen>
+      <View className="flex-1 items-center justify-center gap-5">
+        <Text variant="headline" style={HERO_FONT} className="text-center">
+          {title}
+        </Text>
+        <Text variant="body" tone="muted" className="text-center">
+          {body}
+        </Text>
+        <Button label="닫기" onPress={leaveToHome} />
+      </View>
+    </Screen>
+  );
+}
+
 export function SafetyCheckView({ escalationId }: { escalationId: string }) {
   const careTargetId = useAuthStore((state) => state.user?.care_target_id);
-  const { data, isPending, isError } = useEscalationDetail(escalationId);
+  // 딥링크·오타로 id가 비면 쿼리가 아예 뜨지 않는다. react-query v5는 그때 isPending이 계속
+  // true라, 그걸로 버튼을 막으면 영원히 눌리지 않는 '괜찮아요'가 된다.
+  const validId = escalationId.trim().length > 0;
+
+  const { data } = useEscalationDetail(validId ? escalationId : '');
   const confirm = useSelfConfirmSafe(escalationId, careTargetId);
 
-  // 이미 끝난 건 — 보호자가 먼저 확인했거나 내가 방금 응답했다.
-  const settled = data != null && data.status !== 'IN_PROGRESS';
-
-  if (settled || confirm.isSuccess) {
+  if (!validId) {
     return (
-      <Screen>
-        <View className="flex-1 items-center justify-center gap-5">
-          <Text variant="headline" style={HERO_FONT} className="text-center">
-            잘 알겠어요
-          </Text>
-          <Text variant="body" tone="muted" className="text-center">
-            보호자에게도 알려 드렸어요.
-          </Text>
-          <Button label="닫기" onPress={leaveToHome} />
-        </View>
-      </Screen>
+      <Centered
+        title="확인할 내용이 없어요"
+        body="알림을 다시 눌러 보시거나, 보호자에게 연락해 주세요."
+      />
     );
+  }
+
+  if (confirm.isSuccess) {
+    return <Centered title="잘 알겠어요" body="보호자에게도 알려 드렸어요." />;
+  }
+
+  // 내가 응답하기 전에 이미 끝난 건 — 보호자가 E3로 확인했거나 취소됐다.
+  // "내가 알렸다"고 말하면 사실이 아니다.
+  if (data != null && data.status !== 'IN_PROGRESS') {
+    return <Centered title="이미 확인됐어요" body="보호자가 상황을 확인했어요. 안심하세요." />;
   }
 
   return (
@@ -74,12 +97,8 @@ export function SafetyCheckView({ escalationId }: { escalationId: string }) {
           </Text>
         ) : null}
 
-        <Button
-          label="괜찮아요"
-          loading={confirm.isPending}
-          disabled={isPending || isError}
-          onPress={() => confirm.mutate()}
-        />
+        {/* 상세 조회 상태는 보지 않는다 — 이 버튼은 id 하나로 동작한다 */}
+        <Button label="괜찮아요" loading={confirm.isPending} onPress={() => confirm.mutate()} />
       </View>
     </Screen>
   );
