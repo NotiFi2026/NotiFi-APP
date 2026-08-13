@@ -12,7 +12,7 @@
  */
 
 import * as Notifications from 'expo-notifications';
-import { router } from 'expo-router';
+import { router, useRootNavigationState } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 
@@ -80,6 +80,11 @@ export function useNotificationDeepLink(): void {
   const status = useAuthStore((state) => state.status);
   const role = useAuthStore((state) => state.user?.role);
 
+  // 루트 레이아웃은 폰트가 준비될 때까지 null을 렌더한다 — 그동안은 네비게이터가 없어
+  // push가 조용히 사라진다. 준비되기 전에 보류분을 소비하면 알림이 통째로 증발한다.
+  const navigationState = useRootNavigationState();
+  const navigatorReady = navigationState?.key != null;
+
   const pending = useRef<PendingLink | null>(null);
   const handledKey = useRef<string | null>(null);
 
@@ -97,7 +102,7 @@ export function useNotificationDeepLink(): void {
 
     // 판정이 끝나기 전엔 어디로 보낼지 알 수 없다. 로그아웃이면 보류분을 그대로 두었다가
     // 로그인 성공으로 status가 바뀔 때 이 효과가 다시 돌며 소비한다.
-    if (status !== 'authenticated' || !role) return;
+    if (!navigatorReady || status !== 'authenticated' || !role) return;
 
     const link = pending.current;
     if (!link) return;
@@ -107,5 +112,5 @@ export function useNotificationDeepLink(): void {
     if (!audienceOf(link.kind)(role)) return;
 
     navigateTo(link);
-  }, [response, status, role]);
+  }, [response, status, role, navigatorReady]);
 }

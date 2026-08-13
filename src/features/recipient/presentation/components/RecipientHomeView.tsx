@@ -44,7 +44,12 @@ export function RecipientHomeView() {
           <Text variant="body" tone="muted" className="text-center">
             보호자에게 연결코드를 받아 다시 시작해 주세요.
           </Text>
-          <Button label="연결코드 입력하기" onPress={() => logout.mutate()} />
+          {/* 로그인 화면으로 나가야 코드 입력에 닿는다 — (auth)는 로그인 상태에선 열리지 않는다 */}
+          <Button
+            label="처음으로"
+            loading={logout.isPending}
+            onPress={() => logout.mutate()}
+          />
         </View>
       </Screen>
     );
