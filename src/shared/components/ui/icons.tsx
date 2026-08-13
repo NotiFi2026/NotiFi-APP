@@ -198,6 +198,30 @@ export function PlayIcon({ size = 18, color = INK.base }: IconProps) {
   );
 }
 
+/** 일시정지 — 리플레이 플레이어 재생/정지 토글 */
+export function PauseIcon({ size = 18, color = INK.base }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M7 5.5h3.2v13H7v-13Zm6.8 0H17v13h-3.2v-13Z" fill={color} />
+    </Svg>
+  );
+}
+
+/** 되감기 — 리플레이 처음부터 다시 재생 */
+export function ReplayIcon({ size = 18, color = INK.base }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M4.5 12a7.5 7.5 0 1 1 2.4 5.5"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+      />
+      <Path d="M4.5 7v5h5" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 /** 사회복지사 — 사람 둘 */
 export function PeopleGroupIcon({ size = 20, color = INK.muted }: IconProps) {
   return (
