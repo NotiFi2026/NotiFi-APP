@@ -5,7 +5,7 @@
  * 같은 내용을 두 화면에 각각 짜 두면 반드시 어긋난다 — 여기 한 벌만 둔다.
  */
 
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Pressable, View } from 'react-native';
 
@@ -79,8 +79,7 @@ export function CareTargetPanels({
   loading,
   revealFrom = 2,
 }: CareTargetPanelsProps) {
-  const go = (pathname: '/(app)/(tabs)/home/[id]/devices' | '/(app)/(tabs)/home/[id]/devices/register' | '/(app)/(tabs)/home/[id]/escalations') =>
-    router.push({ pathname, params: { id: String(careTargetId) } });
+  const params = { id: String(careTargetId) };
 
   return (
     <>
@@ -108,7 +107,9 @@ export function CareTargetPanels({
               <View className="mt-4">
                 <Button
                   label="디바이스 등록하기"
-                  onPress={() => go('/(app)/(tabs)/home/[id]/devices/register')}
+                  onPress={() =>
+                    router.push({ pathname: '/(app)/(tabs)/home/[id]/devices/register', params })
+                  }
                 />
               </View>
             </>
@@ -164,15 +165,33 @@ export function CareTargetPanels({
         <View className="bg-surface px-5 py-1" style={{ borderRadius: 20, ...SHADOW_SOFT }}>
           <QuickLink
             label="디바이스 관리"
-            onPress={() => go('/(app)/(tabs)/home/[id]/devices')}
+            onPress={() => router.push({ pathname: '/(app)/(tabs)/home/[id]/devices', params })}
           />
-          <QuickLink label="이벤트 기록" />
+          <QuickLink
+            label="이벤트 기록"
+            onPress={() =>
+              router.push({ pathname: '/(app)/(tabs)/home/[id]/events', params } as unknown as Href)
+            }
+          />
           <QuickLink
             label="응급 이력"
-            onPress={() => go('/(app)/(tabs)/home/[id]/escalations')}
+            onPress={() =>
+              router.push({ pathname: '/(app)/(tabs)/home/[id]/escalations', params })
+            }
           />
-          <QuickLink label="일일 리포트" />
-          <QuickLink label="보호자 관리" last />
+          <QuickLink
+            label="일일 리포트"
+            onPress={() =>
+              router.push({ pathname: '/(app)/(tabs)/home/[id]/reports', params } as unknown as Href)
+            }
+          />
+          <QuickLink
+            label="보호자 관리"
+            onPress={() =>
+              router.push({ pathname: '/(app)/(tabs)/home/[id]/guardians', params } as unknown as Href)
+            }
+            last
+          />
         </View>
       </Reveal>
     </>

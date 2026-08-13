@@ -7,7 +7,7 @@ import { router } from 'expo-router';
 import { memo } from 'react';
 import { Pressable, View } from 'react-native';
 
-import type { EventFeedItem } from '@/features/records/application/hooks/useEventFeed';
+import type { SensingEventSummaryResponse } from '@/api/endpoints/sensingEvents';
 import { RISK_COLORS, RISK_LABELS, SHADOW_SOFT, SURFACE } from '@/config/theme';
 import { eventDisplayLabel } from '@/features/records/domain/services/eventLabels';
 import { Badge, type BadgeTone } from '@/shared/components/ui/Badge';
@@ -26,7 +26,7 @@ export const SensingEventCard = memo(function SensingEventCard({
   item,
   careTargetName,
 }: {
-  item: EventFeedItem;
+  item: SensingEventSummaryResponse;
   careTargetName?: string;
 }) {
   const riskKey = item.risk_level ?? 'UNKNOWN';
