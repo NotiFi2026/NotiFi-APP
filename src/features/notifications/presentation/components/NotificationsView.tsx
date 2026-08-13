@@ -8,11 +8,13 @@ import { useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
 
 import type { NotificationCategory, NotificationResponse } from '@/api/endpoints/notifications';
+import { RADIUS } from '@/config/theme';
 import { useCareTargetList } from '@/features/careTargets/application/hooks/useCareTargetList';
 import { useMarkNotificationRead } from '@/features/notifications/application/hooks/useMarkNotificationRead';
 import { useNotificationList } from '@/features/notifications/application/hooks/useNotificationList';
 import { NotificationCard } from '@/features/notifications/presentation/components/NotificationCard';
 import { TAB_BAR_ALLOWANCE } from '@/shared/components/navigation/TabBar';
+import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
 import { FilterChip } from '@/shared/components/ui/FilterChip';
 import { Reveal } from '@/shared/components/ui/Reveal';
@@ -54,6 +56,15 @@ export function NotificationsView() {
       <Text variant="headline" className="mt-1 mb-4">
         알림함
       </Text>
+      <View
+        className="mb-4 flex-row items-center gap-3 bg-info-surface px-4 py-3"
+        style={{ borderRadius: RADIUS.surface }}
+      >
+        <Badge label="Mock" tone="info" />
+        <Text variant="bodySmall" tone="muted" className="flex-1">
+          발표 데모용 예시 데이터입니다.
+        </Text>
+      </View>
       <FlatList
         horizontal
         data={FILTERS}
