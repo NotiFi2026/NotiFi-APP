@@ -100,6 +100,19 @@ export function mockFindCareTarget(id: number): CareTargetSummaryResponse | unde
   return found ? withDerivedCount(found) : undefined;
 }
 
+/**
+ * escalationsMock이 해제(E3) 시 호출한다 — 홈 요약 배너("확인이 필요해요")는 active_escalation이
+ * 아니라 이 목록의 current_risk_level로 문구가 정해져서, 해제해도 위험도가 그대로면
+ * 배너가 안 사라진 것처럼 보인다(실측으로 발견). 두 상태를 여기서 이어 준다.
+ */
+export function mockSetRiskLevel(
+  careTargetId: number,
+  level: CareTargetSummaryResponse['current_risk_level']
+): void {
+  const target = targets.find((t) => t.care_target_id === careTargetId);
+  if (target) target.current_risk_level = level;
+}
+
 /** C1 — 방금 등록한 노인은 위험도 미평가·기기 0개 상태로 시작한다 */
 export async function mockCreateCareTarget(
   body: CareTargetCreateRequest

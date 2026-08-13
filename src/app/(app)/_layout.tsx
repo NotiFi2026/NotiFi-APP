@@ -13,6 +13,8 @@ export default function AppLayout() {
       <Stack.Screen name="emergency/[esid]" options={bottom} />
       {/* 리플레이도 탭 밖 풀스크린 — 응급 상세 위에 겹쳐 열리므로 같은 전환을 쓴다 */}
       <Stack.Screen name="replay/[eventId]" options={bottom} />
+      {/* 리포트 상세는 탭 밖에 둔다 — 탭 안이면 리포트 탭에서 진입할 때 뒤로가기가 홈으로 샌다 */}
+      <Stack.Screen name="reports/[rid]" options={bottom} />
     </Stack>
   );
 }

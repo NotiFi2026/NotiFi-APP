@@ -12,6 +12,7 @@ import type {
   EscalationStepResponse,
   EscalationSummaryResponse,
 } from '@/api/endpoints/escalations';
+import { mockSetRiskLevel } from '@/api/mock/careTargetsMock';
 
 const LATENCY_MS = 500;
 
@@ -157,6 +158,14 @@ export function mockActiveEscalationOf(careTargetId: number): EscalationDetailRe
   return store.get(careTargetId)?.find((e) => e.status === 'IN_PROGRESS');
 }
 
+/**
+ * notificationsMock이 쓴다 — 알림의 "확인하셨어요" 문구는 읽음 여부가 아니라 실제 해제
+ * 여부를 봐야 한다(그냥 알림을 읽기만 해도 해제된 것처럼 보이던 문제를 이걸로 고쳤다).
+ */
+export function mockIsEscalationResolved(escalationId: number): boolean {
+  return findById(escalationId)?.status === 'RESOLVED';
+}
+
 /** E1 — 최신순(started_at DESC). summary는 서버와 동일하게 null. */
 export async function mockGetEscalations(
   careTargetId: number
@@ -200,5 +209,7 @@ export async function mockResolveEscalation(
     status: s.status === 'PENDING' ? 'SKIPPED' : s.status,
     escalation_status: 'RESOLVED',
   }));
+  // 해제됐으니 홈 배너도 "확인이 필요해요"에서 벗어나야 한다 — current_risk_level과 이어 준다.
+  if (found.care_target_id != null) mockSetRiskLevel(found.care_target_id, 'SAFE');
   return found;
 }

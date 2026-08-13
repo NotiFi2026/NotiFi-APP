@@ -22,7 +22,14 @@ import { useNotificationDeepLink } from '@/lib/notifications'; // side effect: s
 
 SplashScreen.preventAutoHideAsync();
 
-const queryClient = new QueryClient();
+// 기본 retry=3 + exponential backoff는 서버가 안 붙어있을 때 최종 실패까지 17초가 걸려서
+// 그동안 로딩 스켈레톤만 보인다 (T1-1 알림함에서 실측). 1회 재시도로 줄여 몇 초 안에
+// 에러 화면 + 재시도 버튼을 보여준다.
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: 1 },
+  },
+});
 
 /**
  * 이 제품은 라이트 전용이다 (DESIGN.md).
