@@ -8,47 +8,19 @@
  */
 
 import { useState } from 'react';
-import { FlatList, Pressable, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 
 import type { CareTargetSummaryResponse } from '@/api/endpoints/careTargets';
-import { BRAND, RADIUS, SURFACE } from '@/config/theme';
+import { RADIUS } from '@/config/theme';
 import { useCareTargetList } from '@/features/careTargets/application/hooks/useCareTargetList';
 import { useDailyReportList } from '@/features/reports/application/hooks/useDailyReportList';
 import { ReportListRow } from '@/features/reports/presentation/components/ReportListRow';
 import { TAB_BAR_ALLOWANCE } from '@/shared/components/navigation/TabBar';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
+import { FilterChip } from '@/shared/components/ui/FilterChip';
 import { Reveal } from '@/shared/components/ui/Reveal';
 import { Text } from '@/shared/components/ui/Text';
-
-function TargetChip({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      style={({ pressed }) => ({
-        paddingHorizontal: 14,
-        paddingVertical: 9,
-        borderRadius: RADIUS.control,
-        backgroundColor: selected ? BRAND.soft : SURFACE.sunk,
-        opacity: pressed ? 0.85 : 1,
-      })}
-    >
-      <Text variant="label" tone={selected ? 'brand' : 'muted'}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
 
 function MockNotice() {
   return (
@@ -99,7 +71,7 @@ export function ReportsView() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: 8 }}
           renderItem={({ item: target }) => (
-            <TargetChip
+            <FilterChip
               label={target.name}
               selected={target.care_target_id === activeId}
               onPress={() => setSelectedId(target.care_target_id)}
