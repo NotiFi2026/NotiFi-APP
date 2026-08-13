@@ -1,10 +1,13 @@
 /**
- * 세션 확정 — 로그인(A2)·회원가입(A1→A2)·세션 복원(A3)이 공유하는 저장 절차.
+ * 세션 확정 — 로그인(A2)·회원가입(A1→A2)·노인 연결(A5)이 공유하는 저장 절차.
  * 토큰은 SecureStore, 메모리 사본은 Zustand (ui-spec.md 1-10).
+ *
+ * 세션 복원(A3)은 여기를 쓰지 않는다 — 저장과 상태 확정의 순서가 중요해서
+ * useSessionRestore가 직접 다룬다(회전된 토큰은 늦게 도착해도 저장해야 한다).
  */
 
 import type { LoginResponse } from '@/api/endpoints/auth';
-import { useAuthStore, type SessionUser } from '@/features/auth/application/store/authStore';
+import { useAuthStore } from '@/features/auth/application/store/authStore';
 import { clearTokens, setSessionUser, setTokens } from '@/lib/secureStore';
 
 /**
@@ -25,8 +28,3 @@ export async function persistSession(session: LoginResponse, remember: boolean):
   await setSessionUser(session.user);
 }
 
-/** A3 갱신에는 user가 없다 — 저장해 둔 사용자 정보와 합쳐 세션을 되살린다 */
-export async function restoreSession(accessToken: string, refreshToken: string, user: SessionUser) {
-  await setTokens(accessToken, refreshToken);
-  useAuthStore.getState().setSession(accessToken, user);
-}

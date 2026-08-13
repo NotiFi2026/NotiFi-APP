@@ -8,6 +8,7 @@
  * 에러 경로 확인용:
  *   비밀번호 "wrong"        → INVALID_CREDENTIALS
  *   이메일 taken@notifi.app → EMAIL_ALREADY_EXISTS
+ *   연결코드 "BADCODE"      → INVALID_RECIPIENT_CODE
  */
 
 import type { LoginResponse, RefreshResponse } from '@/api/endpoints/auth';
@@ -42,6 +43,24 @@ export async function mockSignup(email: string): Promise<void> {
   if (email === 'taken@notifi.app') {
     throw new Error('EMAIL_ALREADY_EXISTS');
   }
+}
+
+/**
+ * A5 목 — 연결코드로 노인 세션을 만든다.
+ *
+ * care_target_id는 **3**이어야 한다. escalationsMock의 진행 중 건(9001)이 3번 이복례에게
+ * 걸려 있어서, 여기가 어긋나면 노인 홈에 "괜찮으신가요?" 카드가 영영 뜨지 않는다 —
+ * 기기 없이 안부 확인·E4 흐름을 확인할 방법이 사라진다.
+ */
+export async function mockRecipientSignup(code: string): Promise<LoginResponse> {
+  await settle();
+  if (code.trim().toUpperCase() === 'BADCODE') {
+    throw new Error('INVALID_RECIPIENT_CODE');
+  }
+  return {
+    ...issueTokens(),
+    user: { user_id: 900, name: '이복례', role: 'CARE_RECIPIENT', care_target_id: 3 },
+  };
 }
 
 export async function mockRefresh(): Promise<RefreshResponse> {

@@ -1,5 +1,8 @@
 /**
- * A-2 로그인. 성공하면 세션을 저장하고 홈으로 replace한다 (뒤로가기로 로그인에 못 돌아온다).
+ * A-2 로그인. 성공하면 **세션만 저장한다** — 화면 이동은 (auth) 레이아웃 가드가 한다.
+ *
+ * 여기서 직접 홈으로 replace하면 역할 분기(보호자/노인)를 두 곳에서 판단하게 되고,
+ * 보류 중인 알림 딥링크가 있을 때 그 목적지를 덮어쓴다.
  *
  * FCM 토큰 등록(N3)은 여기서 하지 않는다 — 알림 권한은 앱 최초 진입이 아니라
  * 맥락이 생겼을 때(첫 노인 등록 직후) 요청한다는 규칙 때문이다
@@ -7,7 +10,6 @@
  */
 
 import { useMutation } from '@tanstack/react-query';
-import { router } from 'expo-router';
 
 import { login } from '@/api/endpoints/auth';
 import { persistSession } from '@/features/auth/application/session';
@@ -22,9 +24,6 @@ export interface LoginInput {
 export function useLogin() {
   return useMutation({
     mutationFn: ({ email, password }: LoginInput) => login(email.trim(), password),
-    onSuccess: async (session, { remember }) => {
-      await persistSession(session, remember);
-      router.replace('/(app)/(tabs)/home');
-    },
+    onSuccess: (session, { remember }) => persistSession(session, remember),
   });
 }

@@ -11,7 +11,6 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { router } from 'expo-router';
 
 import { logout } from '@/api/endpoints/auth';
 import { useAuthStore } from '@/features/auth/application/store/authStore';
@@ -24,9 +23,9 @@ export function useLogout() {
     mutationFn: logout,
     onSettled: async () => {
       await clearTokens();
+      // 로그인 화면으로 옮기는 건 (app) 가드의 몫이다 — clearSession이 status를 바꾸면 따라온다
       useAuthStore.getState().clearSession();
       queryClient.clear();
-      router.replace('/(auth)/login');
     },
   });
 }

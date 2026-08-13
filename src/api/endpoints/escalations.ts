@@ -1,5 +1,5 @@
 /**
- * E1 목록 / E2 상세 / E3 보호자 확인·해제 — api-spec.md 에스컬레이션 절.
+ * E1 목록 / E2 상세 / E3 보호자 확인·해제 / E4 노인 본인 응답 — api-spec.md 에스컬레이션 절.
  * 필드는 서버와 동일하게 snake_case 유지 (StyleGuide-RN.md 7절).
  *
  * EXPO_PUBLIC_USE_MOCK_CARE_TARGETS=true 이면 api/mock/escalationsMock.ts로 우회한다.
@@ -10,6 +10,7 @@ import {
   mockGetEscalation,
   mockGetEscalations,
   mockResolveEscalation,
+  mockSelfConfirmSafe,
 } from '@/api/mock/escalationsMock';
 import { unwrap } from '@/api/unwrap';
 import { USE_MOCK_CARE_TARGETS } from '@/config/env';
@@ -97,6 +98,22 @@ export async function resolveEscalation(
   const { data } = await apiClient.post<ApiResponse<EscalationDetailResponse>>(
     `/escalations/${escalationId}/resolve`,
     body
+  );
+  return unwrap(data);
+}
+
+/**
+ * E4. 노인 본인이 "괜찮다"고 알려 에스컬레이션을 해소한다 → resolution_type=SELF_RESOLVED.
+ *
+ * 서버가 requireSelf로 **보호자를 막는다** — 보호자에겐 E3가 따로 있고, 대신 눌러 줄 수 있으면
+ * "본인이 직접 괜찮다고 했다"는 기록의 의미가 사라지기 때문이다.
+ * 이미 종료된 건에 다시 부르면 409.
+ */
+export async function selfConfirmSafe(escalationId: string): Promise<EscalationDetailResponse> {
+  if (USE_MOCK_CARE_TARGETS) return mockSelfConfirmSafe(Number(escalationId));
+
+  const { data } = await apiClient.post<ApiResponse<EscalationDetailResponse>>(
+    `/escalations/${escalationId}/self-ok`
   );
   return unwrap(data);
 }

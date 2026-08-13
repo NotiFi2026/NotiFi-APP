@@ -1,5 +1,5 @@
 /**
- * A1 회원가입 · A2 로그인 · A3 토큰 갱신 · A4 로그아웃 — api-spec.md 인증 절.
+ * A1 회원가입 · A2 로그인 · A3 토큰 갱신 · A4 로그아웃 · A5 노인 연결코드 — api-spec.md 인증 절.
  * 필드는 서버와 동일하게 snake_case 유지 (StyleGuide-RN.md 7절).
  *
  * EXPO_PUBLIC_USE_MOCK_AUTH=true 이면 서버 대신 api/mock/authMock.ts로 우회한다.
@@ -8,9 +8,15 @@
 import axios from 'axios';
 
 import { apiClient } from '@/api/client';
-import { mockLogin, mockLogout, mockRefresh, mockSignup } from '@/api/mock/authMock';
+import {
+  mockLogin,
+  mockLogout,
+  mockRecipientSignup,
+  mockRefresh,
+  mockSignup,
+} from '@/api/mock/authMock';
 import { API_BASE_URL, USE_MOCK_AUTH } from '@/config/env';
-import type { SessionUser } from '@/features/auth/application/store/authStore';
+import type { SessionUser, SignupRole } from '@/features/auth/application/store/authStore';
 import type { ApiResponse } from '@/shared/types/api';
 
 export interface LoginResponse {
@@ -24,11 +30,20 @@ export interface RefreshResponse {
   refresh_token: string;
 }
 
+/** A5 원본 응답 — care_target_id가 user 밖에 따로 온다 (서버 RecipientSignupResponse) */
+interface RecipientSignupResponse {
+  access_token: string;
+  refresh_token: string;
+  user: SessionUser;
+  care_target_id: number;
+}
+
 export interface SignupRequest {
   name: string;
   email: string;
   password: string;
-  role: SessionUser['role'];
+  /** SessionUser['role']이 아니다 — A1으로는 보호자·사회복지사만 만든다 (노인은 A5, ADMIN은 앱 밖) */
+  role: SignupRole;
 }
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
@@ -52,6 +67,33 @@ export async function signup(body: SignupRequest): Promise<void> {
   if (!data.success) {
     throw new Error(data.error?.code ?? 'SIGNUP_FAILED');
   }
+}
+
+/**
+ * A5. 노인 본인 계정 — 보호자가 발급한 연결코드(R5) 하나로 가입과 재로그인을 겸한다.
+ *
+ * **이메일·비밀번호를 보내지 않는다.** 노인은 그 자격증명을 소유하지 않는 것이 정상이고
+ * (보호자가 대신 만든다) 아무도 기억하지 않아 로그아웃되면 복구가 안 된다. 서버가 생성해 주므로
+ * 앱은 코드만 들고 오면 된다. 이미 연결된 노인이면 서버가 재연결로 처리해 같은 계정을 되돌려준다.
+ *
+ * 응답의 care_target_id가 중요하다 — 노인은 care_relationship 행이 없어 C2(노인 목록)가
+ * 빈 배열이라, 자기 상태(S1)를 조회할 유일한 열쇠다.
+ */
+export async function recipientSignup(code: string): Promise<LoginResponse> {
+  if (USE_MOCK_AUTH) return mockRecipientSignup(code);
+
+  const { data } = await apiClient.post<ApiResponse<RecipientSignupResponse>>(
+    '/auth/recipient-signup',
+    { code: code.trim() }
+  );
+  if (!data.success || !data.data) {
+    throw new Error(data.error?.code ?? 'RECIPIENT_SIGNUP_FAILED');
+  }
+
+  // care_target_id를 user 안으로 접어 넣는다 — 세션 저장(SecureStore)이 user 하나만 다루므로
+  // 여기서 합쳐 두면 복원 경로가 기존과 완전히 같아진다.
+  const { access_token, refresh_token, user, care_target_id } = data.data;
+  return { access_token, refresh_token, user: { ...user, care_target_id } };
 }
 
 /**

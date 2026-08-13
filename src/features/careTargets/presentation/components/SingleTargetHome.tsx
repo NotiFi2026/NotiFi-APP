@@ -24,6 +24,10 @@ import {
 } from '@/features/careTargets/presentation/components/StageBackdrop';
 import { StatusStage } from '@/features/careTargets/presentation/components/StatusStage';
 import { EscalationConsole } from '@/features/escalations/presentation/components/EscalationConsole';
+import {
+  GUARDIAN_PUSH_REASON,
+  PushPermissionCard,
+} from '@/features/notifications/presentation/components/PushPermissionCard';
 import { TAB_BAR_ALLOWANCE } from '@/shared/components/navigation/TabBar';
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
@@ -89,6 +93,7 @@ export function SingleTargetHome({ target }: { target: CareTargetSummaryResponse
             </View>
           ) : (
             <>
+              <PushPermissionCard body={GUARDIAN_PUSH_REASON} />
               <CareTargetPanels
                 careTargetId={target.care_target_id}
                 devices={devices}

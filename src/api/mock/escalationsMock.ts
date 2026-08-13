@@ -213,3 +213,31 @@ export async function mockResolveEscalation(
   if (found.care_target_id != null) mockSetRiskLevel(found.care_target_id, 'SAFE');
   return found;
 }
+
+/**
+ * E4 목 — 노인 본인 '괜찮아요'. 서버와 같이 SELF_RESOLVED로 닫고 음성 확인 단계를 '응답함'으로
+ * 남긴다 (서버 recordSelfResponseStep과 같은 모양). 보호자 앱 타임라인에도 그대로 비친다.
+ */
+export async function mockSelfConfirmSafe(escalationId: number): Promise<EscalationDetailResponse> {
+  await settle();
+  const found = findById(escalationId);
+  if (!found) throw new Error('ESCALATION_NOT_FOUND');
+  if (found.status !== 'IN_PROGRESS') throw new Error('ESCALATION_ALREADY_RESOLVED');
+
+  const now = new Date().toISOString();
+  found.status = 'RESOLVED';
+  found.resolution_type = 'SELF_RESOLVED';
+  found.resolved_at = now;
+  found.steps = found.steps.map((s) => {
+    if (s.step_type === 'VOICE_CHECK') {
+      return { ...s, status: 'RESPONDED', responded_at: now, escalation_status: 'RESOLVED' };
+    }
+    return {
+      ...s,
+      status: s.status === 'PENDING' ? 'SKIPPED' : s.status,
+      escalation_status: 'RESOLVED',
+    };
+  });
+  if (found.care_target_id != null) mockSetRiskLevel(found.care_target_id, 'SAFE');
+  return found;
+}

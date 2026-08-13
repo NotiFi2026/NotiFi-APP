@@ -22,7 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { USE_MOCK_AUTH } from '@/config/env';
 import { BRAND, INK, RADIUS, SHADOW_SOFT, SURFACE, TEAL } from '@/config/theme';
 import { useSignup } from '@/features/auth/application/hooks/useSignup';
-import type { SessionUser } from '@/features/auth/application/store/authStore';
+import type { SignupRole } from '@/features/auth/application/store/authStore';
 import { authErrorField, authErrorMessage } from '@/features/auth/domain/services/authError';
 import {
   PASSWORD_MIN_LENGTH,
@@ -46,7 +46,9 @@ import {
 } from '@/shared/components/ui/icons';
 import { useReduceMotion } from '@/shared/hooks/useReduceMotion';
 
-type Role = SessionUser['role'];
+// SessionUser['role']을 쓰면 안 된다 — 그건 서버가 줄 수 있는 값 전체(ADMIN·CARE_RECIPIENT 포함)라
+// 이 화면에서 만들 수 없는 계정까지 타입이 허용해 버린다. 노인 계정은 연결코드(A5)로만 생긴다.
+type Role = SignupRole;
 
 const ROLE_OPTIONS: { value: Role; label: string; hint: string; Glyph: ComponentType<IconProps> }[] =
   [

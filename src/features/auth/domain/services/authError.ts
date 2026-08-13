@@ -14,6 +14,10 @@ const MESSAGE_BY_CODE: Record<string, string> = {
   VALIDATION_ERROR: '입력 정보를 다시 확인해 주세요.',
   BAD_REQUEST: '입력 정보를 다시 확인해 주세요.',
   RATE_LIMITED: '요청이 많습니다. 잠시 후 다시 시도해 주세요.',
+  // A5 — 코드는 일회성이고 24시간이 지나면 사라진다. 노인이 스스로 할 수 있는 일이 없으므로
+  // "다시 확인하세요"가 아니라 보호자에게 요청하라고 말해 준다.
+  INVALID_RECIPIENT_CODE: '연결코드가 맞지 않거나 시간이 지났어요. 보호자에게 새 코드를 받아 주세요.',
+  CARE_TARGET_NOT_FOUND: '연결할 대상을 찾지 못했어요. 보호자에게 새 코드를 받아 주세요.',
 };
 
 export const authErrorMessage = createErrorMessage(

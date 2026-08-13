@@ -188,6 +188,24 @@ export function LoginView() {
                 />
               </View>
             </Reveal>
+
+            {/* 노인 본인 폰의 유일한 진입로 — 이메일·비밀번호를 모르는 것이 정상이라
+                로그인 폼이 아니라 연결코드로 들어온다 (A5).
+                회원가입 줄과 같은 시차로 둔다 — 8이면 880ms 뒤에야 나타나 가장 먼저 필요한
+                사람에게 가장 늦게 보인다. */}
+            <Reveal index={7}>
+              <View className="mt-1 flex-row items-center justify-center">
+                <Text variant="bodySmall" tone="muted">
+                  어르신 본인이신가요?
+                </Text>
+                <Button
+                  label="연결코드로 시작"
+                  variant="text"
+                  onPress={() => router.push('/(auth)/recipient-code')}
+                  disabled={loginMutation.isPending}
+                />
+              </View>
+            </Reveal>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
