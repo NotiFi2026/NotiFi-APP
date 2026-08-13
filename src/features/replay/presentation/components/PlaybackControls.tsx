@@ -7,7 +7,7 @@
  *  클립 자체가 이벤트 1건의 윈도라 창 전체가 곧 사건이다.)
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, View, type LayoutChangeEvent } from 'react-native';
 
 import { BRAND, INK, SURFACE, TEAL } from '@/config/theme';
@@ -21,6 +21,25 @@ const TRACK_TOUCH_PADDING = 14;
 
 function seconds(frame: number, fps: number): string {
   return (frame / fps).toFixed(1);
+}
+
+/**
+ * 연속된 결측 프레임을 구간 하나로 접는다.
+ * 이 컴포넌트는 재생 중 프레임마다 다시 그려지므로, 304칸을 매번 훑으면
+ * 초당 30번 헛일을 한다 — 구간은 클립이 바뀔 때만 다시 계산하면 된다.
+ */
+function invalidRanges(frameValid: boolean[]): { from: number; to: number }[] {
+  const ranges: { from: number; to: number }[] = [];
+  let start: number | null = null;
+  frameValid.forEach((valid, index) => {
+    if (!valid && start === null) start = index;
+    if (valid && start !== null) {
+      ranges.push({ from: start, to: index - 1 });
+      start = null;
+    }
+  });
+  if (start !== null) ranges.push({ from: start, to: frameValid.length - 1 });
+  return ranges;
 }
 
 export interface PlaybackControlsProps {
@@ -38,6 +57,7 @@ export function PlaybackControls({
 }: PlaybackControlsProps) {
   const [trackWidth, setTrackWidth] = useState(0);
   const { frame, playing, speed, ended, toggle, seek, cycleSpeed } = playback;
+  const dropouts = useMemo(() => invalidRanges(frameValid), [frameValid]);
 
   const lastIndex = Math.max(frameCount - 1, 1);
   const progress = trackWidth * (frame / lastIndex);
@@ -68,22 +88,20 @@ export function PlaybackControls({
           }}
         >
           {/* 복원 실패 구간 — 진행 막대 아래 깔아 재생해도 계속 보이게 한다 */}
-          {frameValid.map((valid, index) =>
-            valid ? null : (
-              <View
-                key={index}
-                style={{
-                  position: 'absolute',
-                  left: (index / lastIndex) * trackWidth,
-                  width: Math.max(trackWidth / lastIndex, 1),
-                  top: 0,
-                  bottom: 0,
-                  backgroundColor: INK.muted,
-                  opacity: 0.35,
-                }}
-              />
-            )
-          )}
+          {dropouts.map((range) => (
+            <View
+              key={range.from}
+              style={{
+                position: 'absolute',
+                left: (range.from / lastIndex) * trackWidth,
+                width: Math.max(((range.to - range.from + 1) / lastIndex) * trackWidth, 1),
+                top: 0,
+                bottom: 0,
+                backgroundColor: INK.muted,
+                opacity: 0.35,
+              }}
+            />
+          ))}
           <View
             style={{
               position: 'absolute',
