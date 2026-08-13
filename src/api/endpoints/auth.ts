@@ -10,7 +10,7 @@ import axios from 'axios';
 import { apiClient } from '@/api/client';
 import { mockLogin, mockLogout, mockRefresh, mockSignup } from '@/api/mock/authMock';
 import { API_BASE_URL, USE_MOCK_AUTH } from '@/config/env';
-import type { SessionUser } from '@/features/auth/application/store/authStore';
+import type { SessionUser, SignupRole } from '@/features/auth/application/store/authStore';
 import type { ApiResponse } from '@/shared/types/api';
 
 export interface LoginResponse {
@@ -28,7 +28,8 @@ export interface SignupRequest {
   name: string;
   email: string;
   password: string;
-  role: SessionUser['role'];
+  /** SessionUser['role']이 아니다 — A1으로는 보호자·사회복지사만 만든다 (노인은 A5, ADMIN은 앱 밖) */
+  role: SignupRole;
 }
 
 export async function login(email: string, password: string): Promise<LoginResponse> {

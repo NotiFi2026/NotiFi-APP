@@ -16,6 +16,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useScreenTransition } from '@/config/navigation';
 import { BRAND, INK, RISK_COLORS, SURFACE } from '@/config/theme';
+import { useSessionRestore } from '@/features/auth/application/hooks/useSessionRestore';
 import { subscribeFcmTokenRefresh } from '@/lib/fcm';
 import { useNotificationDeepLink } from '@/lib/notifications'; // side effect: setNotificationHandler 등록
 
@@ -49,6 +50,9 @@ const notifiTheme = {
 };
 
 export default function RootLayout() {
+  // 세션 판정은 여기서 1회만 돈다. 결과(authStore.status)를 각 그룹 레이아웃이 읽어
+  // <Redirect>로 분기하므로, 이 훅은 화면을 옮기지 않는다.
+  useSessionRestore();
   useNotificationDeepLink();
   // 루트는 (auth)↔(app) 그룹 replace라 방향 없는 페이드가 맞다
   const fade = useScreenTransition('fade');
@@ -62,7 +66,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     // 폰트가 준비된 뒤에 네이티브 스플래시를 내린다 — 먼저 내리면 서체가 한 번 바뀌어 보인다.
-    // 실제 세션 게이트(토큰 검증 → 분기)는 (auth)/splash.tsx (A-1)에서 처리한다.
+    // 세션 판정 중에는 각 가드가 SessionGateView(A-1 비주얼)를 렌더해 이어 붙는다.
     if (fontsLoaded) SplashScreen.hideAsync();
   }, [fontsLoaded]);
 
