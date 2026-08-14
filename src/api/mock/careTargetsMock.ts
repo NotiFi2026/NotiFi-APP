@@ -18,6 +18,7 @@ import type {
   CareTargetCreateRequest,
   CareTargetSummaryResponse,
 } from '@/api/endpoints/careTargets';
+import { mockAddPrimaryGuardian } from '@/api/mock/guardiansMock';
 import { mockDeviceCount } from '@/api/mock/devicesMock';
 
 const MOCK_SCENARIO: 'empty' | 'single' | 'multiple' = 'multiple';
@@ -130,5 +131,7 @@ export async function mockCreateCareTarget(
     is_primary: true, // 등록자는 자동 주보호자 (서버 C1 동작과 동일)
   };
   targets.push(created);
+  // 요약의 is_primary만 세우면 보호자 화면이 빈다 — 관계도 같이 만들어야 서버 C1과 같아진다.
+  mockAddPrimaryGuardian(created.care_target_id);
   return { care_target_id: created.care_target_id };
 }

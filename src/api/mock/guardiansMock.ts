@@ -11,7 +11,6 @@
  */
 
 import type {
-  ApiRelationshipType,
   GuardianResponse,
   InviteCodeCreateRequest,
   InviteCodeCreateResponse,
@@ -93,6 +92,28 @@ const relationships: MockRelationship[] = [
   },
 ];
 
+let nextRelationshipId = relationships.reduce((max, r) => Math.max(max, r.relationship_id), 0) + 1;
+
+/**
+ * C1(노인 등록)이 등록자를 주 보호자로 자동 연결하는 서버 동작을 목에서도 지킨다.
+ * 이게 없으면 목 모드에서 새로 등록한 노인의 보호자 화면이 텅 비고, 주 보호자가 아니게 되어
+ * 초대 버튼조차 안 뜬다 — 그 노인에겐 보호자를 영영 추가할 수 없다.
+ * careTargetsMock.mockCreateCareTarget이 부른다.
+ */
+export function mockAddPrimaryGuardian(careTargetId: number): void {
+  relationships.push({
+    relationship_id: nextRelationshipId++,
+    care_target_id: careTargetId,
+    user_id: 1,
+    name: '김보호',
+    email: 'guardian@notifi.app',
+    role: 'GUARDIAN',
+    relationship_type: 'FAMILY',
+    is_primary: true,
+    notify_priority: 1,
+  });
+}
+
 function strip(r: MockRelationship): GuardianResponse {
   const { care_target_id: _careTargetId, ...guardian } = r;
   return guardian;
@@ -137,7 +158,7 @@ export async function mockUpdateRelationship(
   const found = relationships.find((r) => r.relationship_id === relationshipId);
   if (!found) throw new Error('RELATIONSHIP_NOT_FOUND');
 
-  if (body.relationship_type) found.relationship_type = body.relationship_type as ApiRelationshipType;
+  if (body.relationship_type) found.relationship_type = body.relationship_type;
   if (body.notify_priority !== undefined) found.notify_priority = body.notify_priority;
 
   return {
