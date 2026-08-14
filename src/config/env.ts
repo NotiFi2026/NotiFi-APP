@@ -81,3 +81,14 @@ if (__DEV__ && USE_MOCK_AUTH) {
     );
   }
 }
+
+// 목 알림의 응급 건은 escalationsMock의 진행 중 건(9001)을 가리키도록 맞춰져 있다.
+// 에스컬레이션이 실서버면 그 id가 없어 알림 탭이 빈 화면으로 간다 — 인증처럼 모든 호출이
+// 깨지는 게 아니라 이 경로 하나만 깨지므로, 노인 목록까지 통째로 목으로 돌리는 대신 알린다.
+if (__DEV__ && USE_MOCK_NOTIFICATIONS && !USE_MOCK_CARE_TARGETS) {
+  console.warn(
+    '[env] 목 알림 + 실서버 에스컬레이션 조합입니다.\n' +
+      '      목 응급 알림을 탭하면 목에만 있는 에스컬레이션으로 이동해 화면이 비어 보입니다.\n' +
+      '      딥링크까지 확인하려면 EXPO_PUBLIC_USE_MOCK_CARE_TARGETS도 true로 두세요.'
+  );
+}
