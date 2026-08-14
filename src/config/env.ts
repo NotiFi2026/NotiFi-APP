@@ -34,6 +34,7 @@ export const USE_MOCK_AUTH = flag(process.env.EXPO_PUBLIC_USE_MOCK_AUTH);
 const rawCareTargets = flag(process.env.EXPO_PUBLIC_USE_MOCK_CARE_TARGETS);
 const rawPoseClip = flag(process.env.EXPO_PUBLIC_USE_MOCK_POSE_CLIP);
 const rawReports = flag(process.env.EXPO_PUBLIC_USE_MOCK_REPORTS);
+const rawNotifications = flag(process.env.EXPO_PUBLIC_USE_MOCK_NOTIFICATIONS);
 
 /**
  * 노인 목록(C2)과 그 하위 API(디바이스·상태·이벤트·에스컬레이션) 목킹.
@@ -56,12 +57,20 @@ export const USE_MOCK_POSE_CLIP = USE_MOCK_AUTH || rawPoseClip;
  */
 export const USE_MOCK_REPORTS = USE_MOCK_AUTH || rawReports;
 
+/**
+ * 알림함(N1·N2) 목킹. 서버 구현은 끝나 있고 기본값은 실서버다.
+ * 목은 시연에서 화면을 예측 가능하게 채울 때 쓴다 — 목의 응급 알림은 escalationsMock의
+ * 진행 중 건을 가리키므로 딥링크까지 목끼리 맞아떨어진다.
+ */
+export const USE_MOCK_NOTIFICATIONS = USE_MOCK_AUTH || rawNotifications;
+
 // 덮어쓴 걸 조용히 넘기면 "false로 뒀는데 왜 목이 나오지?"라는 새 혼란이 생긴다 — 이름을 대고 알린다.
 if (__DEV__ && USE_MOCK_AUTH) {
   const overridden = [
     !rawCareTargets && 'USE_MOCK_CARE_TARGETS',
     !rawPoseClip && 'USE_MOCK_POSE_CLIP',
     !rawReports && 'USE_MOCK_REPORTS',
+    !rawNotifications && 'USE_MOCK_NOTIFICATIONS',
   ].filter(Boolean);
 
   if (overridden.length > 0) {

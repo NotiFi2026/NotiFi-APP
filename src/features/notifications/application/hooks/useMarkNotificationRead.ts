@@ -1,11 +1,10 @@
 /**
- * N2 읽음 처리 — 성공 시 알림 목록 캐시를 직접 갱신해 배지·굵기·문구가 즉시 바뀌게 한다.
- * (invalidateQueries+리페치 대신 캐시를 바로 쓰는 이유는 api/endpoints/notifications.ts의
- * markNotificationRead 주석 참고 — 진짜 원인은 그쪽의 unwrap() 오사용이었다.)
+ * N2 읽음 처리 — 성공 시 알림 목록 캐시를 직접 갱신해 배지·굵기가 즉시 바뀌게 한다.
+ * (invalidateQueries + 리페치를 쓰면 목록이 한 번 깜빡이고, 무한 스크롤로 쌓아둔 페이지가 날아간다.)
  *
- * 서버가 돌려준 알림을 그대로 캐시에 꽂는다(is_read만 손으로 뒤집지 않는다) — mock이 읽음
- * 처리와 함께 문구를 "...확인해 주세요."→"...확인하셨어요."로 바꿔 주는데, 클라이언트가
- * is_read만 알고 새 문구는 모르기 때문이다.
+ * 읽음으로 서버에서 바뀌는 건 `is_read`·`read_at`뿐이라 그 둘만 여기서 뒤집는다.
+ * 예전엔 서버가 돌려준 알림을 통째로 캐시에 꽂았는데, **실서버 N2는 `data: null`을 준다** —
+ * 그대로 뒀으면 실연동하는 순간 `updated.notification_id` 접근에서 터졌다.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -19,7 +18,9 @@ export function useMarkNotificationRead() {
 
   return useMutation({
     mutationFn: markNotificationRead,
-    onSuccess: (updated) => {
+    onSuccess: (_void, notificationId) => {
+      const readAt = new Date().toISOString();
+
       queryClient.setQueriesData<InfiniteData<Paginated<NotificationResponse>>>(
         { queryKey: ['notifications'] },
         (old) => {
@@ -29,7 +30,9 @@ export function useMarkNotificationRead() {
             pages: old.pages.map((page) => ({
               ...page,
               content: page.content.map((n) =>
-                n.notification_id === updated.notification_id ? updated : n
+                n.notification_id === notificationId && !n.is_read
+                  ? { ...n, is_read: true, read_at: readAt }
+                  : n
               ),
             })),
           };
