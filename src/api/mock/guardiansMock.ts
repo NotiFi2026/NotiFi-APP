@@ -11,9 +11,12 @@
  */
 
 import type {
+  ApiRelationshipType,
   GuardianResponse,
+  InviteAcceptResponse,
   InviteCodeCreateRequest,
   InviteCodeCreateResponse,
+  InviteCodePreviewResponse,
   RelationshipResponse,
   RelationshipUpdateRequest,
 } from '@/api/endpoints/guardians';
@@ -92,6 +95,21 @@ const relationships: MockRelationship[] = [
   },
 ];
 
+/** authMock의 로그인 사용자. 시드가 이 id를 주 보호자로 두는 이유는 파일 상단 주석 참고. */
+const MOCK_USER_ID = 1;
+
+/**
+ * 초대 미리보기에 쓸 노인 이름. careTargetsMock을 import하면 **순환 참조**가 된다
+ * (그쪽이 mockAddPrimaryGuardian을 부른다) — 그래서 등록 시점에 이름을 받아 여기 쌓는다.
+ * 시드 4명은 careTargetsMock의 MULTIPLE과 같은 값이다.
+ */
+const careTargetNames = new Map<number, string>([
+  [1, '김순자'],
+  [2, '박영감'],
+  [3, '이복례'],
+  [4, '최만수'],
+]);
+
 let nextRelationshipId = relationships.reduce((max, r) => Math.max(max, r.relationship_id), 0) + 1;
 
 /**
@@ -100,11 +118,12 @@ let nextRelationshipId = relationships.reduce((max, r) => Math.max(max, r.relati
  * 초대 버튼조차 안 뜬다 — 그 노인에겐 보호자를 영영 추가할 수 없다.
  * careTargetsMock.mockCreateCareTarget이 부른다.
  */
-export function mockAddPrimaryGuardian(careTargetId: number): void {
+export function mockAddPrimaryGuardian(careTargetId: number, careTargetName?: string): void {
+  if (careTargetName) careTargetNames.set(careTargetId, careTargetName);
   relationships.push({
     relationship_id: nextRelationshipId++,
     care_target_id: careTargetId,
-    user_id: 1,
+    user_id: MOCK_USER_ID,
     name: '김보호',
     email: 'guardian@notifi.app',
     role: 'GUARDIAN',
@@ -128,7 +147,16 @@ export async function mockGetGuardians(careTargetId: number): Promise<GuardianRe
     .map(strip);
 }
 
-/** R1-a — 24시간 유효, 일회성. 코드 모양은 실서버와 같은 8자리 대문자+숫자. */
+/**
+ * 발급한 초대코드. **버리지 않고 들고 있어야** 목 안에서 발급 → 수락이 이어진다 —
+ * 코드를 만들어 놓고 그걸로 수락이 안 되면 목 모드에서 초대 경로를 밟아볼 수가 없다.
+ */
+const inviteCodes = new Map<
+  string,
+  { care_target_id: number; relationship_type: ApiRelationshipType; notify_priority: number; expires_at: string }
+>();
+
+/** R1-a — 24시간 유효, 일회성. 코드 모양은 실서버와 같은 8자리(0·O·I·l·1을 뺀 대문자+숫자). */
 export async function mockIssueInviteCode(
   careTargetId: number,
   body: InviteCodeCreateRequest
@@ -139,14 +167,74 @@ export async function mockIssueInviteCode(
     { length: 8 },
     () => alphabet[Math.floor(Math.random() * alphabet.length)]
   ).join('');
+  const expiresAt = new Date(Date.now() + 24 * 3600_000).toISOString();
+
   // 발급만 하고 관계를 만들지는 않는다 — 실서버도 수락(R1-b)이 있어야 연결된다.
-  void careTargetId;
-  void body;
+  inviteCodes.set(code, {
+    care_target_id: careTargetId,
+    relationship_type: body.relationship_type,
+    notify_priority: body.notify_priority,
+    expires_at: expiresAt,
+  });
+
   return {
     code,
     invite_url: `https://app.bloom-safety.app/invite/${code}`,
-    expires_at: new Date(Date.now() + 24 * 3600_000).toISOString(),
+    expires_at: expiresAt,
   };
+}
+
+/** R1-c — 미리보기는 코드를 소모하지 않는다(실서버와 동일). 없는 코드면 실서버와 같은 코드로 throw. */
+export async function mockPreviewInviteCode(code: string): Promise<InviteCodePreviewResponse> {
+  await settle();
+  const issued = inviteCodes.get(code);
+  if (!issued) throw new Error('INVALID_INVITE_CODE');
+
+  const primary = relationships.find(
+    (r) => r.care_target_id === issued.care_target_id && r.is_primary
+  );
+  return {
+    care_target_id: issued.care_target_id,
+    care_target_name: careTargetNames.get(issued.care_target_id) ?? '돌보는 분',
+    inviter_name: primary?.name ?? '주 보호자',
+    relationship_type: issued.relationship_type,
+    expires_at: issued.expires_at,
+  };
+}
+
+/**
+ * R1-b — 수락 즉시 연결. 이미 보호자면 실서버와 같은 409 코드로 막는다.
+ *
+ * ※ 목 모드에선 **수락 성공을 볼 수 없다.** 목 사용자(user 1)가 시드 노인 4명 전부의
+ * 보호자라, 자기가 발급한 코드를 자기가 수락하면 실서버와 똑같이 409가 난다.
+ * 이건 목의 결함이 아니라 계정이 하나뿐인 목 세계의 사실이다 — 성공 경로는 실서버에
+ * 계정 두 개를 두고 확인한다(그렇게 검증했다).
+ */
+export async function mockAcceptInviteCode(code: string): Promise<InviteAcceptResponse> {
+  await settle();
+  const issued = inviteCodes.get(code);
+  if (!issued) throw new Error('INVALID_INVITE_CODE');
+
+  const already = relationships.some(
+    (r) => r.care_target_id === issued.care_target_id && r.user_id === MOCK_USER_ID
+  );
+  if (already) throw new Error('RELATIONSHIP_ALREADY_EXISTS');
+
+  const created: MockRelationship = {
+    relationship_id: nextRelationshipId++,
+    care_target_id: issued.care_target_id,
+    user_id: MOCK_USER_ID,
+    name: '김보호',
+    email: 'guardian@notifi.app',
+    role: 'GUARDIAN',
+    relationship_type: issued.relationship_type,
+    is_primary: false,
+    notify_priority: issued.notify_priority,
+  };
+  relationships.push(created);
+  inviteCodes.delete(code); // 일회성
+
+  return { relationship_id: created.relationship_id, care_target_id: created.care_target_id };
 }
 
 /** R3 — is_primary는 바꾸지 않는다(서버도 지원하지 않는다) */

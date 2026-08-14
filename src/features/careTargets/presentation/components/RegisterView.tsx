@@ -209,6 +209,20 @@ export function RegisterView() {
                     loading={createMutation.isPending}
                   />
                 </View>
+
+                {/* 이미 다른 보호자가 등록한 분이면 새로 등록하는 게 아니라 초대로 합류해야 한다.
+                    온보딩에만 두면 노인이 이미 있는 보호자가 두 번째 초대를 받았을 때 갈 곳이 없다. */}
+                <View className="mt-2 items-center">
+                  <Text variant="caption" tone="muted">
+                    이미 다른 보호자가 등록한 분인가요?
+                  </Text>
+                  <Button
+                    variant="text"
+                    label="초대 코드로 연결하기"
+                    disabled={createMutation.isPending}
+                    onPress={() => router.push('/(app)/(tabs)/home/invite')}
+                  />
+                </View>
               </Reveal>
             </View>
           </View>

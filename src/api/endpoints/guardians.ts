@@ -9,9 +9,11 @@
 
 import { apiClient } from '@/api/client';
 import {
+  mockAcceptInviteCode,
   mockDeleteRelationship,
   mockGetGuardians,
   mockIssueInviteCode,
+  mockPreviewInviteCode,
   mockUpdateRelationship,
 } from '@/api/mock/guardiansMock';
 import { unwrap } from '@/api/unwrap';
@@ -63,6 +65,46 @@ export async function issueInviteCode(
   const { data } = await apiClient.post<ApiResponse<InviteCodeCreateResponse>>(
     `/care-targets/${careTargetId}/invite-codes`,
     body
+  );
+  return unwrap(data);
+}
+
+/**
+ * R1-c 미리보기 응답 — 코드를 **소모하지 않는다**(실호출 확인). 같은 코드로 바로 수락할 수 있다.
+ *
+ * 이 조회는 **인증이 필요하다**. SecurityConfig가 `/api/v1/**`를 `/auth/**`만 빼고 전부 잠가서,
+ * 로그아웃 상태로 코드를 받으면 로그인한 뒤에야 미리보기가 열린다.
+ */
+export interface InviteCodePreviewResponse {
+  care_target_id: number;
+  care_target_name: string;
+  inviter_name: string;
+  relationship_type: ApiRelationshipType;
+  /** ISO datetime */
+  expires_at: string;
+}
+
+/** R1-c. 없는·만료된 코드면 404 INVALID_INVITE_CODE. */
+export async function previewInviteCode(code: string): Promise<InviteCodePreviewResponse> {
+  if (USE_MOCK_CARE_TARGETS) return mockPreviewInviteCode(code);
+
+  const { data } = await apiClient.get<ApiResponse<InviteCodePreviewResponse>>(
+    `/invite-codes/${code}`
+  );
+  return unwrap(data);
+}
+
+export interface InviteAcceptResponse {
+  relationship_id: number;
+  care_target_id: number;
+}
+
+/** R1-b. 수락 즉시 연결된다. 이미 보호자면 409 RELATIONSHIP_ALREADY_EXISTS. */
+export async function acceptInviteCode(code: string): Promise<InviteAcceptResponse> {
+  if (USE_MOCK_CARE_TARGETS) return mockAcceptInviteCode(code);
+
+  const { data } = await apiClient.post<ApiResponse<InviteAcceptResponse>>(
+    `/invite-codes/${code}/accept`
   );
   return unwrap(data);
 }
