@@ -35,7 +35,13 @@ export interface DailyReportSection {
 export interface DailyReportMetrics {
   warning_event_count: number;
   danger_event_count: number;
-  /** 키는 activity_class 대문자("WALKING") */
+  /**
+   * 키는 activity_class인데 **대소문자가 생산자마다 다르다** — AI 스케줄러가 만든 리포트는
+   * 소문자(`walking`), 손으로 넣은 I3 페이로드는 대문자였다. 서버는 metrics를 JSONB로
+   * 그대로 통과시켜 정규화하지 않는다(sections[].risk_level만 대문자로 맞춘다).
+   * 그래서 화면은 `ReportMetricsCard.labelOf`가 toUpperCase()로 정규화해서 쓴다 —
+   * 여기 오는 키를 그대로 비교하면 안 된다.
+   */
   safe_class_counts: Record<string, number>;
   warning_class_counts: Record<string, number>;
   danger_class_counts: Record<string, number>;
