@@ -34,6 +34,7 @@ export const USE_MOCK_AUTH = flag(process.env.EXPO_PUBLIC_USE_MOCK_AUTH);
 const rawCareTargets = flag(process.env.EXPO_PUBLIC_USE_MOCK_CARE_TARGETS);
 const rawPoseClip = flag(process.env.EXPO_PUBLIC_USE_MOCK_POSE_CLIP);
 const rawReports = flag(process.env.EXPO_PUBLIC_USE_MOCK_REPORTS);
+const rawNotifications = flag(process.env.EXPO_PUBLIC_USE_MOCK_NOTIFICATIONS);
 
 /**
  * 노인 목록(C2)과 그 하위 API(디바이스·상태·이벤트·에스컬레이션) 목킹.
@@ -56,12 +57,20 @@ export const USE_MOCK_POSE_CLIP = USE_MOCK_AUTH || rawPoseClip;
  */
 export const USE_MOCK_REPORTS = USE_MOCK_AUTH || rawReports;
 
+/**
+ * 알림함(N1·N2) 목킹. 서버 구현은 끝나 있고 기본값은 실서버다.
+ * 목은 시연에서 화면을 예측 가능하게 채울 때 쓴다 — 목의 응급 알림은 escalationsMock의
+ * 진행 중 건을 가리키므로 딥링크까지 목끼리 맞아떨어진다.
+ */
+export const USE_MOCK_NOTIFICATIONS = USE_MOCK_AUTH || rawNotifications;
+
 // 덮어쓴 걸 조용히 넘기면 "false로 뒀는데 왜 목이 나오지?"라는 새 혼란이 생긴다 — 이름을 대고 알린다.
 if (__DEV__ && USE_MOCK_AUTH) {
   const overridden = [
     !rawCareTargets && 'USE_MOCK_CARE_TARGETS',
     !rawPoseClip && 'USE_MOCK_POSE_CLIP',
     !rawReports && 'USE_MOCK_REPORTS',
+    !rawNotifications && 'USE_MOCK_NOTIFICATIONS',
   ].filter(Boolean);
 
   if (overridden.length > 0) {
@@ -71,4 +80,15 @@ if (__DEV__ && USE_MOCK_AUTH) {
         '      실 데이터를 보려면 .env에서 EXPO_PUBLIC_USE_MOCK_AUTH=false 로 두고 서버를 띄우세요.'
     );
   }
+}
+
+// 목 알림의 응급 건은 escalationsMock의 진행 중 건(9001)을 가리키도록 맞춰져 있다.
+// 에스컬레이션이 실서버면 그 id가 없어 알림 탭이 빈 화면으로 간다 — 인증처럼 모든 호출이
+// 깨지는 게 아니라 이 경로 하나만 깨지므로, 노인 목록까지 통째로 목으로 돌리는 대신 알린다.
+if (__DEV__ && USE_MOCK_NOTIFICATIONS && !USE_MOCK_CARE_TARGETS) {
+  console.warn(
+    '[env] 목 알림 + 실서버 에스컬레이션 조합입니다.\n' +
+      '      목 응급 알림을 탭하면 목에만 있는 에스컬레이션으로 이동해 화면이 비어 보입니다.\n' +
+      '      딥링크까지 확인하려면 EXPO_PUBLIC_USE_MOCK_CARE_TARGETS도 true로 두세요.'
+  );
 }

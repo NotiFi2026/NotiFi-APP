@@ -8,6 +8,7 @@ import { useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
 
 import type { NotificationCategory, NotificationResponse } from '@/api/endpoints/notifications';
+import { USE_MOCK_NOTIFICATIONS } from '@/config/env';
 import { RADIUS } from '@/config/theme';
 import { useCareTargetList } from '@/features/careTargets/application/hooks/useCareTargetList';
 import { useMarkNotificationRead } from '@/features/notifications/application/hooks/useMarkNotificationRead';
@@ -56,15 +57,17 @@ export function NotificationsView() {
       <Text variant="headline" className="mt-1 mb-4">
         알림함
       </Text>
-      <View
-        className="mb-4 flex-row items-center gap-3 bg-info-surface px-4 py-3"
-        style={{ borderRadius: RADIUS.surface }}
-      >
-        <Badge label="Mock" tone="info" />
-        <Text variant="bodySmall" tone="muted" className="flex-1">
-          발표 데모용 예시 데이터입니다.
-        </Text>
-      </View>
+      {USE_MOCK_NOTIFICATIONS ? (
+        <View
+          className="mb-4 flex-row items-center gap-3 bg-info-surface px-4 py-3"
+          style={{ borderRadius: RADIUS.surface }}
+        >
+          <Badge label="Mock" tone="info" />
+          <Text variant="bodySmall" tone="muted" className="flex-1">
+            예시 데이터로 보고 있어요 — 실제 알림이 아닙니다.
+          </Text>
+        </View>
+      ) : null}
       <FlatList
         horizontal
         data={FILTERS}

@@ -25,9 +25,9 @@ function daysAgo(days: number): string {
   return new Date(Date.now() - days * 86_400_000).toISOString();
 }
 
-// DAILY_REPORT·SYSTEM은 실제로 알림을 만드는 서버 로직이 없어(NotificationService 확인 —
-// EMERGENCY 두 트리거만 구현돼 있다) 목에도 안 넣는다. 있는 척하지 않는다(PRODUCT.md 원칙 4).
-// NotificationsView의 필터 칩에서도 두 카테고리를 뺐다.
+// 서버가 실제로 만드는 종류만 넣는다(있는 척하지 않는다 — PRODUCT.md 원칙 4).
+// EMERGENCY 두 트리거(GUARDIAN_NOTIFY·VOICE_CHECK)에 더해, 2026-08-13부터 I3 리포트 적재가
+// DAILY_REPORT 알림을 만든다. SYSTEM은 아직 만드는 로직이 없어 넣지 않는다.
 const notifications: NotificationResponse[] = [
   {
     notification_id: 1,
@@ -40,6 +40,20 @@ const notifications: NotificationResponse[] = [
     care_target_id: 3,
     escalation_step_id: 2,
     escalation_id: 9001, // escalationsMock의 진행 중 건과 반드시 일치
+  },
+  {
+    // 리포트 알림은 step이 없으므로 escalation_step_id·escalation_id가 둘 다 null이다 —
+    // 실서버 응답과 같은 모양이라야 딥링크 분기(null이면 이동하지 않음)가 목에서도 검증된다.
+    notification_id: 2,
+    category: 'DAILY_REPORT',
+    title: '일일 리포트가 도착했어요',
+    body: '이복례 님의 어제 하루 요약이 준비됐어요.',
+    is_read: false,
+    read_at: null,
+    created_at: minutesAgo(600),
+    care_target_id: 3,
+    escalation_step_id: null,
+    escalation_id: null,
   },
   {
     notification_id: 3,
@@ -92,8 +106,12 @@ export async function mockGetNotifications(
   };
 }
 
-/** N2 — 이미 읽은 알림도 멱등하게 성공. 갱신된 알림을 그대로 돌려준다. */
-export async function mockMarkNotificationRead(notificationId: number): Promise<NotificationResponse> {
+/**
+ * N2 — 이미 읽은 알림도 멱등하게 성공. **실서버와 같이 아무것도 돌려주지 않는다.**
+ * 목이 갱신된 알림을 돌려주면 호출부가 그걸 기대하게 되고, 실서버로 바꾸는 순간 터진다.
+ * (해제 문구 반영은 목록을 다시 부를 때 withResolvedWording이 알아서 한다.)
+ */
+export async function mockMarkNotificationRead(notificationId: number): Promise<void> {
   await settle();
   const found = notifications.find((n) => n.notification_id === notificationId);
   if (!found) throw new Error('RESOURCE_NOT_FOUND');
@@ -101,5 +119,4 @@ export async function mockMarkNotificationRead(notificationId: number): Promise<
     found.is_read = true;
     found.read_at = new Date().toISOString();
   }
-  return withResolvedWording(found);
 }
