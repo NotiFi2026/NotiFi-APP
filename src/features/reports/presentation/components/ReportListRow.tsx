@@ -17,7 +17,7 @@ import { RISK_BADGE_TONE, reportRiskKey } from '@/features/careTargets/domain/se
 import { Badge } from '@/shared/components/ui/Badge';
 import { ChevronRightIcon } from '@/shared/components/ui/icons';
 import { Text } from '@/shared/components/ui/Text';
-import { formatKstDateOnly } from '@/shared/utils/formatDate';
+import { formatDateOnlyKo } from '@/shared/utils/formatDate';
 
 export const ReportListRow = memo(function ReportListRow({
   item,
@@ -27,7 +27,7 @@ export const ReportListRow = memo(function ReportListRow({
   careTargetId: number;
 }) {
   const key = reportRiskKey(item.risk_level);
-  const date = formatKstDateOnly(item.report_date);
+  const date = formatDateOnlyKo(item.report_date);
 
   return (
     <Pressable

@@ -33,10 +33,13 @@ export function formatKstDateTime(iso: string): string {
 
 /**
  * "8월 12일 (화)" — report_date처럼 시각이 없는 날짜 문자열(YYYY-MM-DD)용.
- * new Date('2026-08-14')는 UTC 자정으로 파싱돼 시간대에 따라 하루가 밀리므로
+ *
+ * 이름에 Kst가 없는 건 의도다 — 위 formatKst* 와 달리 **시간대 변환을 하지 않는다.**
+ * report_date는 서버가 이미 KST 기준으로 계산해 준 달력 날짜라, 여기서 또 변환하면
+ * 오히려 하루가 밀린다. new Date('2026-08-14')가 UTC 자정으로 파싱되는 것도 같은 함정이라
  * 문자열을 쪼개 로컬 자정으로 만든다.
  */
-export function formatKstDateOnly(dateOnly: string): string {
+export function formatDateOnlyKo(dateOnly: string): string {
   const [y, m, d] = dateOnly.split('-').map(Number);
   if (!y || !m || !d) return dateOnly;
   return new Date(y, m - 1, d).toLocaleDateString('ko-KR', {

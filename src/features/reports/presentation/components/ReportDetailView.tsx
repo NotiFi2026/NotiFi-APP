@@ -17,7 +17,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { ArrowLeftIcon } from '@/shared/components/ui/icons';
 import { Reveal } from '@/shared/components/ui/Reveal';
 import { Text } from '@/shared/components/ui/Text';
-import { formatKstDateOnly, formatKstDateTime } from '@/shared/utils/formatDate';
+import { formatDateOnlyKo, formatKstDateTime } from '@/shared/utils/formatDate';
 
 export function ReportDetailView({ careTargetId, reportId }: { careTargetId: number; reportId: number }) {
   const { data: report, isPending, isError, refetch } = useDailyReportDetail(reportId);
@@ -62,7 +62,7 @@ export function ReportDetailView({ careTargetId, reportId }: { careTargetId: num
           <View className="flex-row items-center gap-3">
             {USE_MOCK_REPORTS ? <Badge label="Mock" tone="info" /> : null}
             <Text variant="caption" tone="muted">
-              {formatKstDateOnly(report.report_date)} 기준 ·{' '}
+              {formatDateOnlyKo(report.report_date)} 기준 ·{' '}
               {formatKstDateTime(report.generated_at)} 생성
             </Text>
           </View>

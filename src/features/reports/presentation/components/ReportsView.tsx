@@ -84,17 +84,37 @@ export function ReportsView() {
     </View>
   );
 
-  if (targetsPending || reportsPending) {
+  const skeleton = (
+    <View className="flex-1 bg-canvas">
+      {header}
+      <View className="gap-3 px-6">
+        <View className="h-20 rounded-[20px] bg-surface-sunk" />
+        <View className="h-20 rounded-[20px] bg-surface-sunk" />
+      </View>
+    </View>
+  );
+
+  if (targetsPending) return skeleton;
+
+  // 노인이 0명이면 activeId가 없어 리포트 쿼리가 비활성인데, react-query v5는 **비활성 쿼리의
+  // isPending을 계속 true로 둔다.** 이 검사를 아래 로딩 검사보다 뒤에 두면 스켈레톤이 이겨서
+  // 빈 상태가 영영 렌더되지 않는다 (갓 가입한 보호자가 리포트 탭에서 멈춘다).
+  // 겸사겸사 아래 행 렌더에서 careTargetId가 항상 있다는 게 타입으로도 성립한다.
+  if (list.length === 0 || activeId === undefined) {
     return (
       <View className="flex-1 bg-canvas">
         {header}
-        <View className="gap-3 px-6">
-          <View className="h-20 rounded-[20px] bg-surface-sunk" />
-          <View className="h-20 rounded-[20px] bg-surface-sunk" />
+        <View className="items-center gap-2 px-8">
+          <Text variant="title">등록된 노인이 없어요</Text>
+          <Text variant="bodySmall" tone="muted" className="text-center">
+            먼저 홈에서 등록해 주세요.
+          </Text>
         </View>
       </View>
     );
   }
+
+  if (reportsPending) return skeleton;
 
   if (isError) {
     return (
@@ -105,22 +125,6 @@ export function ReportsView() {
             리포트를 불러오지 못했어요.
           </Text>
           <Button variant="text" label="다시 시도" onPress={() => refetch()} />
-        </View>
-      </View>
-    );
-  }
-
-  // activeId는 list[0]에서 오므로 목록이 비면 없다 — 그 경우를 여기서 끝내면
-  // 아래 행 렌더에서 careTargetId가 항상 있다는 게 타입으로도 성립한다.
-  if (list.length === 0 || activeId === undefined) {
-    return (
-      <View className="flex-1 bg-canvas">
-        {header}
-        <View className="items-center gap-2 px-8">
-          <Text variant="title">등록된 노인이 없어요</Text>
-          <Text variant="bodySmall" tone="muted" className="text-center">
-            먼저 홈에서 등록해 주세요.
-          </Text>
         </View>
       </View>
     );
