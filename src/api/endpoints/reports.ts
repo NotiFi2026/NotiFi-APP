@@ -1,26 +1,32 @@
 /**
- * P1 리포트 목록 · P2 리포트 상세 — 로드맵 §3 T1-2, daily_report_design.md(NotiFi-AI-Server) 기준.
- * 백엔드 P1·P2·I3가 전부 미구현이라 지금은 항상 mock을 반환한다.
- * 백엔드가 붙으면 이 함수들 안에 실제 apiClient 호출 분기를 추가하고 api/mock/reportsMock.ts를 정리한다.
+ * P1 리포트 목록 · P2 리포트 상세 — api-spec.md 리포트(Report) 절.
+ * EXPO_PUBLIC_USE_MOCK_REPORTS=true 이면 서버 대신 api/mock/reportsMock.ts로 우회한다.
  *
- * report_id는 AI-Server의 DailyReportOutput에는 없는 필드다 — Server가 저장하며 발급하는
- * PK(tb_daily_report.daily_report_id)라서 그렇다. P2가 report_date가 아니라 report_id로
- * 조회하는 것도 그래서다 (sensing_event_id·escalation_id와 같은 패턴).
+ * 필드 이름·대소문자는 전부 실서버 응답을 캡처해 맞춘 것이다(docs/api-contract-capture.md).
+ * 목만 보고 쓰면 어긋난다 — 실제로 9곳이 어긋나 있었다.
  *
- * 주의: risk_level 값은 소문자다("safe"/"warning"/"danger") — AI-Server의 RiskLevel enum이
- * 그대로 직렬화된 값이라 그렇다. 이 앱의 다른 곳(ApiRiskLevel, care-targets 등)은 전부
- * 대문자를 쓰므로, 실제 백엔드 연동 시 이 대소문자 불일치를 AI팀·백엔드와 맞춰야 한다.
+ * PK가 report_id가 아니라 daily_report_id인 건 서버 DTO가 그렇게 주기 때문이다.
+ * P2가 report_date가 아니라 이 id로 조회하는 것도 같은 이유
+ * (sensing_event_id·escalation_id와 같은 패턴).
+ *
+ * risk_level은 **대문자**다. AI는 소문자로 보내지만 서버가 적재 시점에 대문자로 정규화해
+ * 저장하므로 앱이 보는 값은 항상 대문자다. 단 sections[].risk_level은 서버가 모르는 값이면
+ * 원본을 보존하므로, 표시 전에 reportRiskKey()로 정규화해야 한다.
  */
 
+import { apiClient } from '@/api/client';
+import type { ApiRiskLevel } from '@/api/endpoints/careTargets';
 import { mockGetDailyReport, mockGetDailyReports } from '@/api/mock/reportsMock';
-
-export type ReportRiskLevel = 'safe' | 'warning' | 'danger';
+import { unwrap } from '@/api/unwrap';
+import { USE_MOCK_REPORTS } from '@/config/env';
+import type { ApiResponse, Paginated } from '@/shared/types/api';
 
 export type ReportTag = 'risk_event';
 
 export interface DailyReportSection {
   tag: ReportTag;
-  risk_level: ReportRiskLevel;
+  /** 보통 ApiRiskLevel이지만 서버가 미지의 값을 원본대로 보존한다 — 표시 전 정규화할 것 */
+  risk_level: string;
   title: string;
   body: string;
   recommended_action: string | null;
@@ -29,37 +35,58 @@ export interface DailyReportSection {
 export interface DailyReportMetrics {
   warning_event_count: number;
   danger_event_count: number;
+  /** 키는 activity_class 대문자("WALKING") */
   safe_class_counts: Record<string, number>;
   warning_class_counts: Record<string, number>;
   danger_class_counts: Record<string, number>;
 }
 
-/** P1 목록 행 — 상세를 다 안 실어도 되게 risk_level만 미리 뽑아둔다(v1 태그가 risk_event 하나라 가능). */
+/**
+ * P1 목록 행. 상세를 다 싣지 않으려고 서버가 대표 등급(risk_level)과
+ * 제목(headline = 최고 등급 섹션의 title)을 비정규화해 내려준다.
+ * **care_target_id는 오지 않는다** — 목록 자체가 노인별 조회라 호출부가 이미 안다.
+ */
 export interface DailyReportListItem {
-  report_id: number;
-  care_target_id: number;
+  daily_report_id: number;
   /** YYYY-MM-DD */
   report_date: string;
-  risk_level: ReportRiskLevel;
+  risk_level: ApiRiskLevel;
+  headline: string;
+  /** ISO datetime, UTC */
+  generated_at: string;
 }
 
 export interface DailyReportResponse {
-  report_id: number;
+  daily_report_id: number;
   care_target_id: number;
   /** YYYY-MM-DD */
   report_date: string;
+  /** 대표 등급 — 섹션 중 최고 등급 */
+  risk_level: ApiRiskLevel;
   sections: DailyReportSection[];
   metrics: DailyReportMetrics;
   /** ISO datetime, UTC */
   generated_at: string;
 }
 
-/** P1. 최신순. */
+/**
+ * P1. report_date DESC 고정(서버가 정렬을 강제한다).
+ * 페이지 응답이지만 호출부는 배열만 쓰므로 여기서 content를 벗긴다(getEvents와 같은 관례).
+ * 리포트는 하루 1건이라 첫 페이지 20일치면 충분하다.
+ */
 export async function getDailyReports(careTargetId: number): Promise<DailyReportListItem[]> {
-  return mockGetDailyReports(careTargetId);
+  if (USE_MOCK_REPORTS) return mockGetDailyReports(careTargetId);
+
+  const { data } = await apiClient.get<ApiResponse<Paginated<DailyReportListItem>>>(
+    `/care-targets/${careTargetId}/reports`
+  );
+  return unwrap(data).content;
 }
 
-/** P2. 존재하지 않는 report_id면 null. */
-export async function getDailyReport(reportId: number): Promise<DailyReportResponse | null> {
-  return mockGetDailyReport(reportId);
+/** P2. 없는 리포트면 서버가 404 REPORT_NOT_FOUND를 주고 unwrap이 throw한다. */
+export async function getDailyReport(reportId: number): Promise<DailyReportResponse> {
+  if (USE_MOCK_REPORTS) return mockGetDailyReport(reportId);
+
+  const { data } = await apiClient.get<ApiResponse<DailyReportResponse>>(`/reports/${reportId}`);
+  return unwrap(data);
 }

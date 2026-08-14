@@ -2,8 +2,8 @@
  * H-1 일일 리포트 목록(P1) — 라우트 파일은 조합만 한다 (HomeView와 동일한 관례).
  * 로드맵 §3 T1-2: 목록(노인 선택 포함) + reports/[rid](상세, 탭 밖 전역 라우트)로 분리.
  *
- * 백엔드(P1·P2·I3)가 미구현이라 항상 mock이다 — Mock 배지 + 안내 문구로 드러낸다
- * (PRODUCT.md 원칙 4 "없는 데이터를 있는 척하지 않는다").
+ * 기본은 실서버(P1)다. EXPO_PUBLIC_USE_MOCK_REPORTS=true 일 때만 Mock 배지 + 안내 문구를
+ * 띄운다 (PRODUCT.md 원칙 4 "없는 데이터를 있는 척하지 않는다").
  * 노인이 여럿이면(사회복지사 케이스) 상단 칩으로 대상을 바꿔가며 본다.
  */
 
@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { FlatList, View } from 'react-native';
 
 import type { CareTargetSummaryResponse } from '@/api/endpoints/careTargets';
+import { USE_MOCK_REPORTS } from '@/config/env';
 import { RADIUS } from '@/config/theme';
 import { useCareTargetList } from '@/features/careTargets/application/hooks/useCareTargetList';
 import { useDailyReportList } from '@/features/reports/application/hooks/useDailyReportList';
@@ -23,6 +24,7 @@ import { Reveal } from '@/shared/components/ui/Reveal';
 import { Text } from '@/shared/components/ui/Text';
 
 function MockNotice() {
+  if (!USE_MOCK_REPORTS) return null;
   return (
     <Reveal index={0}>
       <View
@@ -31,7 +33,7 @@ function MockNotice() {
       >
         <Badge label="Mock" tone="info" />
         <Text variant="bodySmall" tone="muted" className="flex-1">
-          아직 리포트 서버가 없어요 — 화면 확인용 예시 데이터입니다.
+          예시 데이터로 보고 있어요 — 실제 리포트가 아닙니다.
         </Text>
       </View>
     </Reveal>
@@ -39,7 +41,12 @@ function MockNotice() {
 }
 
 export function ReportsView() {
-  const { data: targets, isPending: targetsPending } = useCareTargetList();
+  const {
+    data: targets,
+    isPending: targetsPending,
+    isError: targetsError,
+    refetch: refetchTargets,
+  } = useCareTargetList();
   const [selectedId, setSelectedId] = useState<number | undefined>(undefined);
 
   const list: CareTargetSummaryResponse[] = targets ?? [];
@@ -82,17 +89,54 @@ export function ReportsView() {
     </View>
   );
 
-  if (targetsPending || reportsPending) {
+  const skeleton = (
+    <View className="flex-1 bg-canvas">
+      {header}
+      <View className="gap-3 px-6">
+        <View className="h-20 rounded-[20px] bg-surface-sunk" />
+        <View className="h-20 rounded-[20px] bg-surface-sunk" />
+      </View>
+    </View>
+  );
+
+  if (targetsPending) return skeleton;
+
+  // 보여줄 노인이 없을 때. 두 가지 이유가 섞이므로 여기서 갈라야 한다 —
+  // 조회가 실패해도 targets가 undefined라 list가 비는데, 그걸 "등록된 노인이 없어요"로 내면
+  // 보호자에게 돌보던 사람이 사라졌다고 말하는 셈이다.
+  //
+  // targetsError는 **한 번도 데이터를 못 받은 채 실패했을 때만** 참이다. 이미 받아둔 목록이
+  // 있으면 30초 폴링이 실패해도 react-query가 status를 error로 바꾸지 않으므로(직접 확인),
+  // 네트워크가 한 번 흔들렸다고 보이던 목록이 사라지진 않는다.
+  //
+  // 위치도 중요하다: 노인이 0명이면 activeId가 없어 리포트 쿼리가 비활성인데, react-query v5는
+  // **비활성 쿼리의 isPending을 계속 true로 둔다.** 이 검사가 아래 로딩 검사보다 뒤에 있으면
+  // 스켈레톤이 이겨서 이 화면이 영영 안 나온다 (갓 가입한 보호자가 리포트 탭에서 멈춘다).
+  // 겸사겸사 아래 행 렌더에서 careTargetId가 항상 있다는 게 타입으로도 성립한다.
+  if (list.length === 0 || activeId === undefined) {
     return (
       <View className="flex-1 bg-canvas">
         {header}
-        <View className="gap-3 px-6">
-          <View className="h-20 rounded-[20px] bg-surface-sunk" />
-          <View className="h-20 rounded-[20px] bg-surface-sunk" />
-        </View>
+        {targetsError ? (
+          <View className="items-center gap-3 px-6">
+            <Text variant="body" tone="muted">
+              돌보는 분 목록을 불러오지 못했어요.
+            </Text>
+            <Button variant="text" label="다시 시도" onPress={() => refetchTargets()} />
+          </View>
+        ) : (
+          <View className="items-center gap-2 px-8">
+            <Text variant="title">등록된 노인이 없어요</Text>
+            <Text variant="bodySmall" tone="muted" className="text-center">
+              먼저 홈에서 등록해 주세요.
+            </Text>
+          </View>
+        )}
       </View>
     );
   }
+
+  if (reportsPending) return skeleton;
 
   if (isError) {
     return (
@@ -108,31 +152,17 @@ export function ReportsView() {
     );
   }
 
-  if (list.length === 0) {
-    return (
-      <View className="flex-1 bg-canvas">
-        {header}
-        <View className="items-center gap-2 px-8">
-          <Text variant="title">등록된 노인이 없어요</Text>
-          <Text variant="bodySmall" tone="muted" className="text-center">
-            먼저 홈에서 등록해 주세요.
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
   return (
     <FlatList
       className="flex-1 bg-canvas"
       data={items}
-      keyExtractor={(item) => String(item.report_id)}
+      keyExtractor={(item) => String(item.daily_report_id)}
       ListHeaderComponent={header}
       contentContainerStyle={{ paddingBottom: TAB_BAR_ALLOWANCE + 12 }}
       renderItem={({ item, index }) => (
         <View className="px-6 pb-3">
           <Reveal index={Math.min(index, 5)}>
-            <ReportListRow item={item} />
+            <ReportListRow item={item} careTargetId={activeId} />
           </Reveal>
         </View>
       )}

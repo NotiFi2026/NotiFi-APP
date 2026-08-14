@@ -7,17 +7,12 @@ import { View } from 'react-native';
 
 import type { DailyReportSection } from '@/api/endpoints/reports';
 import { RADIUS, RISK_COLORS, RISK_LABELS, RISK_SURFACES, SHADOW_SOFT, SURFACE } from '@/config/theme';
-import { RISK_BADGE_TONE, type RiskKey } from '@/features/careTargets/domain/services/risk';
+import { RISK_BADGE_TONE, reportRiskKey } from '@/features/careTargets/domain/services/risk';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Text } from '@/shared/components/ui/Text';
 
-/** 리포트 섹션의 risk_level은 소문자("safe") — api/endpoints/reports.ts 참고 */
-function toRiskKey(level: DailyReportSection['risk_level']): RiskKey {
-  return level.toUpperCase() as RiskKey;
-}
-
 export function ReportSectionCard({ section }: { section: DailyReportSection }) {
-  const key = toRiskKey(section.risk_level);
+  const key = reportRiskKey(section.risk_level);
 
   return (
     <View
