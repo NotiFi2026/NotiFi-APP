@@ -51,10 +51,12 @@ function ClassChip({ label, count, tier }: { label: string; count: number; tier:
 }
 
 export function ReportMetricsCard({ metrics }: { metrics: DailyReportMetrics }) {
+  // `?? {}`는 방어적 습관이 아니라 필수다 — AI 스케줄러가 만든 리포트에는 safe만 있고
+  // 나머지 두 키가 아예 없어서, 이게 없으면 Object.entries(undefined)로 화면이 죽는다.
   const classChips = [
-    ...Object.entries(metrics.danger_class_counts).map(([k, v]) => ({ key: k, count: v, tier: 'danger' as const })),
-    ...Object.entries(metrics.warning_class_counts).map(([k, v]) => ({ key: k, count: v, tier: 'warning' as const })),
-    ...Object.entries(metrics.safe_class_counts).map(([k, v]) => ({ key: k, count: v, tier: 'safe' as const })),
+    ...Object.entries(metrics.danger_class_counts ?? {}).map(([k, v]) => ({ key: k, count: v, tier: 'danger' as const })),
+    ...Object.entries(metrics.warning_class_counts ?? {}).map(([k, v]) => ({ key: k, count: v, tier: 'warning' as const })),
+    ...Object.entries(metrics.safe_class_counts ?? {}).map(([k, v]) => ({ key: k, count: v, tier: 'safe' as const })),
   ].sort((a, b) => b.count - a.count);
 
   return (
@@ -69,7 +71,14 @@ export function ReportMetricsCard({ metrics }: { metrics: DailyReportMetrics }) 
       {classChips.length > 0 ? (
         <View className="flex-row flex-wrap gap-2">
           {classChips.map((c) => (
-            <ClassChip key={c.key} label={labelOf(c.key)} count={c.count} tier={c.tier} />
+            // 등급을 키에 넣는다 — 같은 활동 클래스가 두 등급에 동시에 들어올 수 있고
+            // (걷기가 safe 12회·warning 1회), 클래스 이름만 쓰면 React 중복 키가 난다
+            <ClassChip
+              key={`${c.tier}-${c.key}`}
+              label={labelOf(c.key)}
+              count={c.count}
+              tier={c.tier}
+            />
           ))}
         </View>
       ) : (

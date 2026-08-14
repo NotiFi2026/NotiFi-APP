@@ -32,19 +32,24 @@ export interface DailyReportSection {
   recommended_action: string | null;
 }
 
+/**
+ * P2 metrics — **서버가 검증하지 않고 통과시키는 자유 구조다.** 필드가 다 온다고 가정하면 안 된다.
+ *
+ * 세 `*_class_counts`가 옵셔널인 건 타입을 느슨하게 하려는 게 아니라 **사실이 그렇기 때문이다.**
+ * AI의 `DailyReportMetrics`(app/agent/schemas.py)에는 `safe_class_counts` 하나뿐이라
+ * 스케줄러가 만든 리포트에는 warning·danger 키가 아예 없다. 필수로 선언해 뒀더니 TS가
+ * 아무 말도 안 했고 `Object.entries(undefined)`로 **상세 화면이 통째로 죽었다**(실측).
+ *
+ * 키의 **대소문자도 생산자마다 다르다** — AI는 소문자(`walking`), 손으로 넣은 I3는 대문자였다.
+ * 서버가 정규화하는 건 `sections[].risk_level` 하나뿐이다. 그래서 화면은
+ * `ReportMetricsCard.labelOf`가 toUpperCase()로 맞춰 쓴다 — 여기 오는 키를 그대로 비교하면 안 된다.
+ */
 export interface DailyReportMetrics {
   warning_event_count: number;
   danger_event_count: number;
-  /**
-   * 키는 activity_class인데 **대소문자가 생산자마다 다르다** — AI 스케줄러가 만든 리포트는
-   * 소문자(`walking`), 손으로 넣은 I3 페이로드는 대문자였다. 서버는 metrics를 JSONB로
-   * 그대로 통과시켜 정규화하지 않는다(sections[].risk_level만 대문자로 맞춘다).
-   * 그래서 화면은 `ReportMetricsCard.labelOf`가 toUpperCase()로 정규화해서 쓴다 —
-   * 여기 오는 키를 그대로 비교하면 안 된다.
-   */
-  safe_class_counts: Record<string, number>;
-  warning_class_counts: Record<string, number>;
-  danger_class_counts: Record<string, number>;
+  safe_class_counts?: Record<string, number>;
+  warning_class_counts?: Record<string, number>;
+  danger_class_counts?: Record<string, number>;
 }
 
 /**
@@ -70,7 +75,8 @@ export interface DailyReportResponse {
   /** 대표 등급 — 섹션 중 최고 등급 */
   risk_level: ApiRiskLevel;
   sections: DailyReportSection[];
-  metrics: DailyReportMetrics;
+  /** I3에서 필수가 아니라(@NotNull 없음) 통째로 없을 수 있다 */
+  metrics?: DailyReportMetrics;
   /** ISO datetime, UTC */
   generated_at: string;
 }
