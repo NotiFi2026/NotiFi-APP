@@ -31,6 +31,21 @@ export function formatKstDateTime(iso: string): string {
   }
 }
 
+/**
+ * "8월 12일 (화)" — report_date처럼 시각이 없는 날짜 문자열(YYYY-MM-DD)용.
+ * new Date('2026-08-14')는 UTC 자정으로 파싱돼 시간대에 따라 하루가 밀리므로
+ * 문자열을 쪼개 로컬 자정으로 만든다.
+ */
+export function formatKstDateOnly(dateOnly: string): string {
+  const [y, m, d] = dateOnly.split('-').map(Number);
+  if (!y || !m || !d) return dateOnly;
+  return new Date(y, m - 1, d).toLocaleDateString('ko-KR', {
+    month: 'long',
+    day: 'numeric',
+    weekday: 'short',
+  });
+}
+
 export function formatKst(iso: string): string {
   try {
     return new Date(iso).toLocaleTimeString('ko-KR', {

@@ -7,6 +7,7 @@
 import { router } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
+import { USE_MOCK_REPORTS } from '@/config/env';
 import { useDailyReportDetail } from '@/features/reports/application/hooks/useDailyReportDetail';
 import { ReportMetricsCard } from '@/features/reports/presentation/components/ReportMetricsCard';
 import { ReportSectionCard } from '@/features/reports/presentation/components/ReportSectionCard';
@@ -16,7 +17,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { ArrowLeftIcon } from '@/shared/components/ui/icons';
 import { Reveal } from '@/shared/components/ui/Reveal';
 import { Text } from '@/shared/components/ui/Text';
-import { formatKstDateTime } from '@/shared/utils/formatDate';
+import { formatKstDateOnly, formatKstDateTime } from '@/shared/utils/formatDate';
 
 export function ReportDetailView({ careTargetId, reportId }: { careTargetId: number; reportId: number }) {
   const { data: report, isPending, isError, refetch } = useDailyReportDetail(reportId);
@@ -59,13 +60,15 @@ export function ReportDetailView({ careTargetId, reportId }: { careTargetId: num
       ) : (
         <View className="gap-4 px-5 pt-2">
           <View className="flex-row items-center gap-3">
-            <Badge label="Mock" tone="info" />
+            {USE_MOCK_REPORTS ? <Badge label="Mock" tone="info" /> : null}
             <Text variant="caption" tone="muted">
-              {report.report_date} 기준 · {formatKstDateTime(report.generated_at)} 생성
+              {formatKstDateOnly(report.report_date)} 기준 ·{' '}
+              {formatKstDateTime(report.generated_at)} 생성
             </Text>
           </View>
+          {/* tag는 v1이 전부 risk_event라 키가 될 수 없다 — 서버는 섹션을 여러 개 준다 */}
           {report.sections.map((section, index) => (
-            <Reveal key={section.tag} index={index}>
+            <Reveal key={`${section.tag}-${index}`} index={index}>
               <ReportSectionCard section={section} />
             </Reveal>
           ))}

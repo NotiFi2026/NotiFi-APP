@@ -6,6 +6,7 @@
 import { router } from 'expo-router';
 import { FlatList, Pressable, View } from 'react-native';
 
+import { USE_MOCK_REPORTS } from '@/config/env';
 import { RADIUS } from '@/config/theme';
 import { useDailyReportList } from '@/features/reports/application/hooks/useDailyReportList';
 import { ReportListRow } from '@/features/reports/presentation/components/ReportListRow';
@@ -17,6 +18,7 @@ import { ArrowLeftIcon } from '@/shared/components/ui/icons';
 import { Text } from '@/shared/components/ui/Text';
 
 function MockNotice() {
+  if (!USE_MOCK_REPORTS) return null;
   return (
     <View
       className="mb-4 flex-row items-center gap-3 bg-info-surface px-4 py-3"
@@ -24,7 +26,7 @@ function MockNotice() {
     >
       <Badge label="Mock" tone="info" />
       <Text variant="bodySmall" tone="muted" className="flex-1">
-        아직 리포트 서버가 없어요 — 화면 확인용 예시 데이터입니다.
+        예시 데이터로 보고 있어요 — 실제 리포트가 아닙니다.
       </Text>
     </View>
   );
@@ -83,7 +85,7 @@ export function ReportListView({ careTargetId }: { careTargetId: number }) {
       ) : (
         <FlatList
           data={items}
-          keyExtractor={(item) => String(item.report_id)}
+          keyExtractor={(item) => String(item.daily_report_id)}
           ListHeaderComponent={
             <View className="px-5 pt-3">
               <MockNotice />
@@ -91,7 +93,7 @@ export function ReportListView({ careTargetId }: { careTargetId: number }) {
           }
           renderItem={({ item }) => (
             <View className="px-5 pb-3">
-              <ReportListRow item={item} />
+              <ReportListRow item={item} careTargetId={careTargetId} />
             </View>
           )}
           contentContainerStyle={{ paddingBottom: TAB_BAR_ALLOWANCE + 12 }}

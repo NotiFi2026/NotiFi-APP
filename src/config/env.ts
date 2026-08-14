@@ -26,3 +26,10 @@ export const USE_MOCK_CARE_TARGETS = process.env.EXPO_PUBLIC_USE_MOCK_CARE_TARGE
  * AI가 클립을 적재하기 시작하면 이 변수와 src/api/mock/poseClipMock.ts(+fixtures)를 함께 지운다.
  */
 export const USE_MOCK_POSE_CLIP = process.env.EXPO_PUBLIC_USE_MOCK_POSE_CLIP === 'true';
+
+/**
+ * 일일 리포트(P1·P2) 목킹. 서버는 2026-08-13에 붙었으므로 기본값은 실서버다 —
+ * 이 플래그는 서버에 리포트가 한 건도 없을 때 화면을 만지기 위한 개발용 우회로다.
+ * (리포트는 AI가 I3로 적재해야 생기고, 아직 생성 스케줄러가 없어 수동 호출뿐이다.)
+ */
+export const USE_MOCK_REPORTS = process.env.EXPO_PUBLIC_USE_MOCK_REPORTS === 'true';

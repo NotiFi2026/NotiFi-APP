@@ -2,8 +2,8 @@
  * H-1 일일 리포트 목록(P1) — 라우트 파일은 조합만 한다 (HomeView와 동일한 관례).
  * 로드맵 §3 T1-2: 목록(노인 선택 포함) + reports/[rid](상세, 탭 밖 전역 라우트)로 분리.
  *
- * 백엔드(P1·P2·I3)가 미구현이라 항상 mock이다 — Mock 배지 + 안내 문구로 드러낸다
- * (PRODUCT.md 원칙 4 "없는 데이터를 있는 척하지 않는다").
+ * 기본은 실서버(P1)다. EXPO_PUBLIC_USE_MOCK_REPORTS=true 일 때만 Mock 배지 + 안내 문구를
+ * 띄운다 (PRODUCT.md 원칙 4 "없는 데이터를 있는 척하지 않는다").
  * 노인이 여럿이면(사회복지사 케이스) 상단 칩으로 대상을 바꿔가며 본다.
  */
 
@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { FlatList, View } from 'react-native';
 
 import type { CareTargetSummaryResponse } from '@/api/endpoints/careTargets';
+import { USE_MOCK_REPORTS } from '@/config/env';
 import { RADIUS } from '@/config/theme';
 import { useCareTargetList } from '@/features/careTargets/application/hooks/useCareTargetList';
 import { useDailyReportList } from '@/features/reports/application/hooks/useDailyReportList';
@@ -23,6 +24,7 @@ import { Reveal } from '@/shared/components/ui/Reveal';
 import { Text } from '@/shared/components/ui/Text';
 
 function MockNotice() {
+  if (!USE_MOCK_REPORTS) return null;
   return (
     <Reveal index={0}>
       <View
@@ -31,7 +33,7 @@ function MockNotice() {
       >
         <Badge label="Mock" tone="info" />
         <Text variant="bodySmall" tone="muted" className="flex-1">
-          아직 리포트 서버가 없어요 — 화면 확인용 예시 데이터입니다.
+          예시 데이터로 보고 있어요 — 실제 리포트가 아닙니다.
         </Text>
       </View>
     </Reveal>
@@ -108,7 +110,9 @@ export function ReportsView() {
     );
   }
 
-  if (list.length === 0) {
+  // activeId는 list[0]에서 오므로 목록이 비면 없다 — 그 경우를 여기서 끝내면
+  // 아래 행 렌더에서 careTargetId가 항상 있다는 게 타입으로도 성립한다.
+  if (list.length === 0 || activeId === undefined) {
     return (
       <View className="flex-1 bg-canvas">
         {header}
@@ -126,13 +130,13 @@ export function ReportsView() {
     <FlatList
       className="flex-1 bg-canvas"
       data={items}
-      keyExtractor={(item) => String(item.report_id)}
+      keyExtractor={(item) => String(item.daily_report_id)}
       ListHeaderComponent={header}
       contentContainerStyle={{ paddingBottom: TAB_BAR_ALLOWANCE + 12 }}
       renderItem={({ item, index }) => (
         <View className="px-6 pb-3">
           <Reveal index={Math.min(index, 5)}>
-            <ReportListRow item={item} />
+            <ReportListRow item={item} careTargetId={activeId} />
           </Reveal>
         </View>
       )}
