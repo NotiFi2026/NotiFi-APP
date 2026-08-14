@@ -21,6 +21,9 @@ export function useInvitePreview(code: string | null) {
     enabled: code !== null,
     // 초대는 한 번 확인하면 끝이다. 재시도가 붙으면 잘못된 코드에서 오류가 늦게 뜬다
     retry: false,
+    // 코드는 일회성이다. 캐시가 남으면 **이미 소모된 코드**를 다시 넣었을 때 미리보기 카드가
+    // 잠깐 떴다가 404로 바뀐다 — 남겨서 득이 없다
+    gcTime: 0,
   });
 }
 

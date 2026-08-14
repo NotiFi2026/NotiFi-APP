@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
+import { errorCodeOf } from '@/api/errorMessage';
 import { RADIUS, SHADOW_SOFT, SURFACE } from '@/config/theme';
 import {
   useInviteAccept,
@@ -48,6 +49,11 @@ export function InviteAcceptView() {
   const canConfirm = trimmed.length === CODE_LENGTH && !preview.isFetching;
   // enabled:false인 동안 isPending은 계속 true다 — 확인을 누르기 전엔 로딩이 아니다
   const checking = confirmedCode !== null && preview.isPending;
+  /**
+   * 이미 그 노인의 보호자다. 코드를 다시 넣어 봐야 계속 409이고, 정작 그 노인은
+   * 이미 홈 목록에 있다 — 다음 행동은 "다른 코드"가 아니라 "홈으로"다.
+   */
+  const alreadyGuardian = errorCodeOf(accept.error) === 'RELATIONSHIP_ALREADY_EXISTS';
 
   const goBack = () =>
     router.canGoBack() ? router.back() : router.replace('/(app)/(tabs)/home');
@@ -127,10 +133,12 @@ export function InviteAcceptView() {
               </Text>
             </View>
 
+            {/* 이미 보호자면 다시 눌러 봐야 또 409다 — 누를 수 있는 채로 두지 않는다 */}
             <Button
               label="수락하고 함께 돌보기"
               loading={accept.isPending}
               loadingLabel="연결하는 중"
+              disabled={alreadyGuardian}
               onPress={() => {
                 if (!confirmedCode) return;
                 accept.mutate(confirmedCode, {
@@ -144,16 +152,24 @@ export function InviteAcceptView() {
               }}
             />
 
-            <Button
-              variant="text"
-              label="다른 코드 입력하기"
-              disabled={accept.isPending}
-              onPress={() => {
-                setConfirmedCode(null);
-                setCode('');
-                accept.reset();
-              }}
-            />
+            {alreadyGuardian ? (
+              <Button
+                variant="text"
+                label="홈으로 가기"
+                onPress={() => router.replace('/(app)/(tabs)/home')}
+              />
+            ) : (
+              <Button
+                variant="text"
+                label="다른 코드 입력하기"
+                disabled={accept.isPending}
+                onPress={() => {
+                  setConfirmedCode(null);
+                  setCode('');
+                  accept.reset();
+                }}
+              />
+            )}
           </>
         ) : (
           <>
