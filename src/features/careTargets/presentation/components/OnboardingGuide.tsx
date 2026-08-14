@@ -77,10 +77,15 @@ export function OnboardingGuide() {
         ))}
       </View>
 
+      {/* "링크"가 아니라 코드다 — Universal Link 설정이 없어 카톡으로 받은 코드를 입력한다 */}
       <View className="mt-4 items-center">
-        <Button variant="text" label="초대 링크로 연결하기" onPress={() => {}} disabled />
+        <Button
+          variant="text"
+          label="초대 코드로 연결하기"
+          onPress={() => router.push('/(app)/(tabs)/home/invite')}
+        />
         <UIText variant="caption" tone="muted">
-          초대 연결은 다음 작업에서 열립니다.
+          이미 등록된 어르신이라면 초대 코드를 받아 합류하세요.
         </UIText>
       </View>
     </View>

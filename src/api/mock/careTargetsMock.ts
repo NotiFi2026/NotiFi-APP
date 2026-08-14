@@ -132,6 +132,8 @@ export async function mockCreateCareTarget(
   };
   targets.push(created);
   // 요약의 is_primary만 세우면 보호자 화면이 빈다 — 관계도 같이 만들어야 서버 C1과 같아진다.
-  mockAddPrimaryGuardian(created.care_target_id);
+  // 이름도 넘긴다: 초대 미리보기가 "누구를 맡기려는지" 보여줘야 하는데, 목끼리 import하면
+  // 순환 참조라 guardiansMock이 이름을 알 방법이 이것뿐이다.
+  mockAddPrimaryGuardian(created.care_target_id, created.name);
   return { care_target_id: created.care_target_id };
 }
