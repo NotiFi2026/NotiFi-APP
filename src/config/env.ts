@@ -12,9 +12,11 @@ function flag(value: string | undefined): boolean {
 }
 
 /**
- * 개발용 인증 목킹. Spring 백엔드 없이 인증 화면의 상태 전환을 확인하기 위한 임시 스위치다.
+ * 개발용 인증 목킹. 서버를 띄우지 않고 인증 화면의 상태 전환만 볼 때 켠다.
  * 켜져 있으면 화면에 MOCK 배지가 보인다 — 실데이터인 척하지 않는다 (PRODUCT.md 원칙 4).
- * 백엔드가 붙으면 이 변수와 src/api/mock/ 을 함께 지운다.
+ *
+ * 서버(A1~A5)는 이미 구현돼 있다. 이 변수와 src/api/mock/ 은 **전 화면이 실서버로 도는 걸
+ * 확인한 뒤**(세션 5) 함께 지운다 — "백엔드가 붙으면"이 아니라 개발 우회로가 필요 없어질 때다.
  *
  * **이 플래그가 나머지를 지배한다** — 아래 참고.
  */
@@ -35,7 +37,8 @@ const rawReports = flag(process.env.EXPO_PUBLIC_USE_MOCK_REPORTS);
 
 /**
  * 노인 목록(C2)과 그 하위 API(디바이스·상태·이벤트·에스컬레이션) 목킹.
- * care-targets API가 붙으면 이 변수와 src/api/mock/careTargetsMock.ts를 함께 지운다.
+ * 서버엔 전부 구현돼 있다 — 목은 서버 없이 화면을 만지거나 0명/N명 분기를
+ * (careTargetsMock.ts의 MOCK_SCENARIO로) 강제할 때 쓴다.
  */
 export const USE_MOCK_CARE_TARGETS = USE_MOCK_AUTH || rawCareTargets;
 

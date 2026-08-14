@@ -41,7 +41,12 @@ function MockNotice() {
 }
 
 export function ReportsView() {
-  const { data: targets, isPending: targetsPending } = useCareTargetList();
+  const {
+    data: targets,
+    isPending: targetsPending,
+    isError: targetsError,
+    refetch: refetchTargets,
+  } = useCareTargetList();
   const [selectedId, setSelectedId] = useState<number | undefined>(undefined);
 
   const list: CareTargetSummaryResponse[] = targets ?? [];
@@ -96,20 +101,37 @@ export function ReportsView() {
 
   if (targetsPending) return skeleton;
 
-  // 노인이 0명이면 activeId가 없어 리포트 쿼리가 비활성인데, react-query v5는 **비활성 쿼리의
-  // isPending을 계속 true로 둔다.** 이 검사를 아래 로딩 검사보다 뒤에 두면 스켈레톤이 이겨서
-  // 빈 상태가 영영 렌더되지 않는다 (갓 가입한 보호자가 리포트 탭에서 멈춘다).
+  // 보여줄 노인이 없을 때. 두 가지 이유가 섞이므로 여기서 갈라야 한다 —
+  // 조회가 실패해도 targets가 undefined라 list가 비는데, 그걸 "등록된 노인이 없어요"로 내면
+  // 보호자에게 돌보던 사람이 사라졌다고 말하는 셈이다.
+  //
+  // targetsError는 **한 번도 데이터를 못 받은 채 실패했을 때만** 참이다. 이미 받아둔 목록이
+  // 있으면 30초 폴링이 실패해도 react-query가 status를 error로 바꾸지 않으므로(직접 확인),
+  // 네트워크가 한 번 흔들렸다고 보이던 목록이 사라지진 않는다.
+  //
+  // 위치도 중요하다: 노인이 0명이면 activeId가 없어 리포트 쿼리가 비활성인데, react-query v5는
+  // **비활성 쿼리의 isPending을 계속 true로 둔다.** 이 검사가 아래 로딩 검사보다 뒤에 있으면
+  // 스켈레톤이 이겨서 이 화면이 영영 안 나온다 (갓 가입한 보호자가 리포트 탭에서 멈춘다).
   // 겸사겸사 아래 행 렌더에서 careTargetId가 항상 있다는 게 타입으로도 성립한다.
   if (list.length === 0 || activeId === undefined) {
     return (
       <View className="flex-1 bg-canvas">
         {header}
-        <View className="items-center gap-2 px-8">
-          <Text variant="title">등록된 노인이 없어요</Text>
-          <Text variant="bodySmall" tone="muted" className="text-center">
-            먼저 홈에서 등록해 주세요.
-          </Text>
-        </View>
+        {targetsError ? (
+          <View className="items-center gap-3 px-6">
+            <Text variant="body" tone="muted">
+              돌보는 분 목록을 불러오지 못했어요.
+            </Text>
+            <Button variant="text" label="다시 시도" onPress={() => refetchTargets()} />
+          </View>
+        ) : (
+          <View className="items-center gap-2 px-8">
+            <Text variant="title">등록된 노인이 없어요</Text>
+            <Text variant="bodySmall" tone="muted" className="text-center">
+              먼저 홈에서 등록해 주세요.
+            </Text>
+          </View>
+        )}
       </View>
     );
   }
