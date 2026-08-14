@@ -5,10 +5,12 @@
 
 import { createErrorMessage } from '@/api/errorMessage';
 
+/** 코드는 서버 실제 값(docs/api-contract-capture.md 에러 계약 절). REQUEST_FAILED만 앱 내부값이다. */
 const MESSAGE_BY_CODE: Record<string, string> = {
-  VALIDATION_ERROR: '입력 정보를 다시 확인해 주세요.',
-  BAD_REQUEST: '입력 정보를 다시 확인해 주세요.',
-  RATE_LIMITED: '요청이 많습니다. 잠시 후 다시 시도해 주세요.',
+  // 서버의 검증 실패 코드는 이것 하나다 — VALIDATION_ERROR·BAD_REQUEST는 서버에 없다.
+  INVALID_INPUT_VALUE: '입력 정보를 다시 확인해 주세요.',
+  ACCESS_DENIED: '이 작업을 할 권한이 없어요.',
+  // unwrap()과 목이 코드 없는 실패에 쓰는 앱 내부값
   REQUEST_FAILED: '등록에 실패했습니다. 잠시 후 다시 시도해 주세요.',
 };
 

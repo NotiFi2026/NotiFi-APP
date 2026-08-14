@@ -2,6 +2,7 @@
  * Axios 인스턴스 — StyleGuide-RN.md 5절, ui-spec.md 1-10(토큰 관리) 기준.
  * Request: SecureStore의 accessToken을 Authorization 헤더에 주입.
  * Response: 401 시 A3(POST /auth/refresh)로 갱신 후 원요청 재시도. 실패 시 세션 초기화(이동은 가드가 한다).
+ * 단 `/auth/*`의 401은 갱신 대상이 아니다 — isAuthEndpoint 주석 참고.
  * 동시 다발 401은 큐잉해 refresh 호출이 한 번만 나가도록 한다.
  */
 
@@ -34,6 +35,16 @@ let isRefreshing = false;
 let pendingQueue: ((token: string | null) => void)[] = [];
 
 /**
+ * 인증 엔드포인트의 401은 **그 요청 자체의 답**이지 "세션이 만료됐다"가 아니다.
+ * 갱신을 시도하면 로그아웃 상태라 리프레시 토큰이 없어 NO_REFRESH_TOKEN으로 바뀌고,
+ * 원래 코드(INVALID_CREDENTIALS)가 사라져 로그인 화면이 "비밀번호가 틀렸다" 대신
+ * "서버에 문제가 있습니다"를 띄운다. 그래서 이 경로는 인터셉터를 통째로 지나간다.
+ */
+function isAuthEndpoint(url: string | undefined): boolean {
+  return (url ?? '').startsWith('/auth/');
+}
+
+/**
  * 세션이 끝났다고 확정한다. **화면은 옮기지 않는다** — clearSession이 status를
  * 'unauthenticated'로 바꾸면 각 그룹 레이아웃 가드가 알아서 로그인으로 보낸다.
  *
@@ -51,7 +62,12 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as RetryableConfig | undefined;
 
-    if (error.response?.status !== 401 || !originalRequest || originalRequest._retry) {
+    if (
+      error.response?.status !== 401 ||
+      !originalRequest ||
+      originalRequest._retry ||
+      isAuthEndpoint(originalRequest.url)
+    ) {
       return Promise.reject(error);
     }
 
