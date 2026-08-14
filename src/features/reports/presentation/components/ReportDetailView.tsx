@@ -73,9 +73,12 @@ export function ReportDetailView({ careTargetId, reportId }: { careTargetId: num
             </Reveal>
           ))}
 
-          <Reveal index={report.sections.length}>
-            <ReportMetricsCard metrics={report.metrics} />
-          </Reveal>
+          {/* metrics는 I3에서 필수가 아니다(@NotNull 없음) — 없는 리포트도 본문은 읽혀야 한다 */}
+          {report.metrics ? (
+            <Reveal index={report.sections.length}>
+              <ReportMetricsCard metrics={report.metrics} />
+            </Reveal>
+          ) : null}
         </View>
       )}
     </Screen>
