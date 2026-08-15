@@ -7,6 +7,25 @@
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:8080/api/v1';
 
+/** 잘못 적힌 값(빈 문자열·0·문자)이 폴링을 폭주시키거나 멈추지 않게 기본값으로 되돌린다. */
+function positiveInt(value: string | undefined, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+/**
+ * 대시보드·홈의 서버 상태 폴링 주기 (StyleGuide-RN.md 4절의 30초가 기본값).
+ *
+ * 두 훅(`useCareTargetList`·`useCareTargetStatus`)이 각자 30초를 들고 있었다. 함께
+ * 움직여야 하는 값이라 한 곳에 둔다 — 한쪽만 바꾸면 홈과 대시보드가 서로 다른 시각의
+ * 상태를 보여준다.
+ *
+ * 설정으로 연 이유는 **시연 녹화**다. 낙상이 감지되고 화면이 바뀔 때까지 최대 30초가
+ * 비는데, 영상에서 그 침묵은 "동작하지 않는 것"으로 보인다. 촬영용 `.env`에서만 낮추고
+ * (예: 5000) 기본값은 건드리지 않는다 — 30초는 서버 부하를 보고 정한 값이다.
+ */
+export const POLL_INTERVAL_MS = positiveInt(process.env.EXPO_PUBLIC_POLL_INTERVAL_MS, 30_000);
+
 function flag(value: string | undefined): boolean {
   return value === 'true';
 }

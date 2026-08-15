@@ -1,16 +1,16 @@
 /**
- * B-1 홈의 노인 목록(C2) 서버 상태 — 30초 폴링 (StyleGuide-RN.md 4절).
+ * B-1 홈의 노인 목록(C2) 서버 상태 — 기본 30초 폴링 (StyleGuide-RN.md 4절).
+ * 주기는 `config/env`가 단일 출처다 — 대시보드와 같은 값이어야 한다.
  *
  * pull-to-refresh는 로컬 refreshing 상태로 분리한다: RefreshControl에 isFetching을
- * 직접 물리면 30초 폴링 때마다 스피너가 내려와 사용자 제스처와 구분되지 않는다.
+ * 직접 물리면 폴링 때마다 스피너가 내려와 사용자 제스처와 구분되지 않는다.
  */
 
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 
 import { getCareTargets } from '@/api/endpoints/careTargets';
-
-const POLL_INTERVAL_MS = 30_000;
+import { POLL_INTERVAL_MS } from '@/config/env';
 
 export function useCareTargetList() {
   const query = useQuery({
