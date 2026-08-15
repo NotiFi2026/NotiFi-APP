@@ -11,8 +11,12 @@
  */
 
 import { router } from 'expo-router';
-import { View } from 'react-native';
+import { useEffect } from 'react';
+import { Platform, View } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 
+import { mockTriggerNoResponse } from '@/api/mock/escalationsMock';
+import { USE_MOCK_CARE_TARGETS } from '@/config/env';
 import { useAuthStore } from '@/features/auth/application/store/authStore';
 import { useEscalationDetail } from '@/features/escalations/application/hooks/useEscalationDetail';
 import { useSelfConfirmSafe } from '@/features/recipient/application/hooks/useSelfConfirmSafe';
@@ -44,6 +48,22 @@ function Centered({ title, body }: { title: string; body: string }) {
   );
 }
 
+/** 촬영용 — 실제로는 목소리로 확인하는 화면이라, 버튼 대신 듣고 있다는 표시만 보여준다. */
+const IS_DEMO_MODE = Platform.OS === 'web' && USE_MOCK_CARE_TARGETS;
+
+function ListeningIndicator() {
+  return (
+    <View className="flex-row items-center justify-center gap-3 py-2">
+      <View
+        style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: RISK_COLORS.DANGER }}
+      />
+      <Text variant="body" tone="muted">
+        듣고 있어요…
+      </Text>
+    </View>
+  );
+}
+
 export function SafetyCheckView({ escalationId }: { escalationId: string }) {
   const careTargetId = useAuthStore((state) => state.user?.care_target_id);
   // 딥링크·오타로 id가 비면 쿼리가 아예 뜨지 않는다. react-query v5는 그때 isPending이 계속
@@ -52,6 +72,22 @@ export function SafetyCheckView({ escalationId }: { escalationId: string }) {
 
   const { data } = useEscalationDetail(validId ? escalationId : '');
   const confirm = useSelfConfirmSafe(escalationId, careTargetId);
+  const queryClient = useQueryClient();
+
+  // 촬영용 키보드 트리거("2"=음성으로 안전 확인, "3"=무응답→보호자 알림) — 웹+mock 전용, 화면엔 안 보인다.
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !USE_MOCK_CARE_TARGETS || !validId) return;
+    function handler(e: KeyboardEvent) {
+      if (e.key === '2' && !confirm.isSuccess) {
+        confirm.mutate();
+      } else if (e.key === '3') {
+        const updated = mockTriggerNoResponse(Number(escalationId));
+        queryClient.setQueryData(['escalation', escalationId], updated);
+      }
+    }
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [validId, escalationId, confirm, queryClient]);
 
   if (!validId) {
     return (
@@ -83,10 +119,14 @@ export function SafetyCheckView({ escalationId }: { escalationId: string }) {
             괜찮으신가요?
           </Text>
           <Text variant="body">
-            집 안에서 평소와 다른 움직임이 감지됐어요. 괜찮으시면 아래 버튼을 눌러 주세요.
+            {IS_DEMO_MODE
+              ? '집 안에서 평소와 다른 움직임이 감지됐어요. 괜찮으시면 편하게 대답해 주세요.'
+              : '집 안에서 평소와 다른 움직임이 감지됐어요. 괜찮으시면 아래 버튼을 눌러 주세요.'}
           </Text>
           <Text variant="bodySmall" tone="muted">
-            누르지 않으시면 잠시 뒤 보호자에게 연락이 갑니다.
+            {IS_DEMO_MODE
+              ? '대답이 없으시면 잠시 뒤 보호자에게 연락이 갑니다.'
+              : '누르지 않으시면 잠시 뒤 보호자에게 연락이 갑니다.'}
           </Text>
         </View>
 
@@ -97,8 +137,12 @@ export function SafetyCheckView({ escalationId }: { escalationId: string }) {
           </Text>
         ) : null}
 
-        {/* 상세 조회 상태는 보지 않는다 — 이 버튼은 id 하나로 동작한다 */}
-        <Button label="괜찮아요" loading={confirm.isPending} onPress={() => confirm.mutate()} />
+        {IS_DEMO_MODE ? (
+          <ListeningIndicator />
+        ) : (
+          // 상세 조회 상태는 보지 않는다 — 이 버튼은 id 하나로 동작한다
+          <Button label="괜찮아요" loading={confirm.isPending} onPress={() => confirm.mutate()} />
+        )}
       </View>
     </Screen>
   );

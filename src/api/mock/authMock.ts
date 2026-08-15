@@ -48,9 +48,9 @@ export async function mockSignup(email: string): Promise<void> {
 /**
  * A5 목 — 연결코드로 노인 세션을 만든다.
  *
- * care_target_id는 **3**이어야 한다. escalationsMock의 진행 중 건(9001)이 3번 이복례에게
- * 걸려 있어서, 여기가 어긋나면 노인 홈에 "괜찮으신가요?" 카드가 영영 뜨지 않는다 —
- * 기기 없이 안부 확인·E4 흐름을 확인할 방법이 사라진다.
+ * care_target_id는 **1**(김순자, 안전 상태·활성 에스컬레이션 없음)로 시작한다 — 촬영용
+ * 키보드 트리거(RecipientHomeView의 "1")로 낙상을 원하는 타이밍에 만들 수 있으므로,
+ * 로그인하자마자 진행 중 건이 떠 있을 필요가 없다.
  */
 export async function mockRecipientSignup(code: string): Promise<LoginResponse> {
   await settle();
@@ -59,7 +59,7 @@ export async function mockRecipientSignup(code: string): Promise<LoginResponse> 
   }
   return {
     ...issueTokens(),
-    user: { user_id: 900, name: '이복례', role: 'CARE_RECIPIENT', care_target_id: 3 },
+    user: { user_id: 900, name: '김순자', role: 'CARE_RECIPIENT', care_target_id: 1 },
   };
 }
 

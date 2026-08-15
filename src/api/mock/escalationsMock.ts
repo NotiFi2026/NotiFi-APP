@@ -12,7 +12,7 @@ import type {
   EscalationStepResponse,
   EscalationSummaryResponse,
 } from '@/api/endpoints/escalations';
-import { mockSetRiskLevel } from '@/api/mock/careTargetsMock';
+import { mockFindCareTarget, mockSetRiskLevel } from '@/api/mock/careTargetsMock';
 
 const LATENCY_MS = 500;
 
@@ -239,5 +239,81 @@ export async function mockSelfConfirmSafe(escalationId: number): Promise<Escalat
     };
   });
   if (found.care_target_id != null) mockSetRiskLevel(found.care_target_id, 'SAFE');
+  return found;
+}
+
+let demoEscalationSeq = 9100;
+
+/**
+ * 촬영용 트리거(키보드 "1") — 방금 낙상이 감지되어 음성 확인을 막 시작한 것처럼
+ * 진행 중 건을 만든다. 이미 진행 중 건이 있으면 새로 만들지 않고 그 건을 리셋한다.
+ */
+export function mockTriggerFallDetected(careTargetId: number): EscalationDetailResponse {
+  const now = new Date().toISOString();
+  const list = store.get(careTargetId) ?? [];
+  let target = list.find((e) => e.status === 'IN_PROGRESS');
+
+  if (!target) {
+    target = {
+      escalation_id: demoEscalationSeq,
+      status: 'IN_PROGRESS',
+      resolution_type: null,
+      resolution_memo: null,
+      started_at: now,
+      resolved_at: null,
+      care_target_id: careTargetId,
+      care_target_name: mockFindCareTarget(careTargetId)?.name ?? '',
+      event_type: 'FALL',
+      sensing_event_id: demoEscalationSeq + 900,
+      steps: [],
+    };
+    demoEscalationSeq += 1;
+    list.unshift(target);
+    store.set(careTargetId, list);
+  } else {
+    target.status = 'IN_PROGRESS';
+    target.resolution_type = null;
+    target.resolution_memo = null;
+    target.started_at = now;
+    target.resolved_at = null;
+  }
+
+  target.steps = [
+    step(target.escalation_id * 10 + 1, target.escalation_id, {
+      step_type: 'VOICE_CHECK',
+      step_order: 1,
+      status: 'EXECUTED',
+      executed_at: now,
+    }, 'IN_PROGRESS', now),
+  ];
+
+  mockSetRiskLevel(careTargetId, 'DANGER');
+  return target;
+}
+
+/**
+ * 촬영용 트리거(키보드 "3") — 음성 확인 무응답으로 보호자 알림까지 올라간 상태로 전환한다.
+ * 건 자체는 여전히 IN_PROGRESS — 실제로도 119 신고 전까지는 진행 중이다.
+ */
+export function mockTriggerNoResponse(escalationId: number): EscalationDetailResponse {
+  const found = findById(escalationId);
+  if (!found) throw new Error('ESCALATION_NOT_FOUND');
+  const now = new Date().toISOString();
+  const voiceCheck = found.steps.find((s) => s.step_type === 'VOICE_CHECK');
+
+  found.steps = [
+    ...(voiceCheck ? [{ ...voiceCheck, status: 'NO_RESPONSE' as const }] : []),
+    step(found.escalation_id * 10 + 2, found.escalation_id, {
+      step_type: 'GUARDIAN_NOTIFY',
+      step_order: 2,
+      status: 'EXECUTED',
+      executed_at: now,
+    }, 'IN_PROGRESS', now),
+    step(found.escalation_id * 10 + 3, found.escalation_id, {
+      step_type: 'EMERGENCY_CALL',
+      step_order: 3,
+      status: 'PENDING',
+    }, 'IN_PROGRESS', now),
+  ];
   return found;
 }

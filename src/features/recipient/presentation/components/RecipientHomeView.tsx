@@ -9,8 +9,15 @@
  */
 
 import { router } from 'expo-router';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Platform, RefreshControl, ScrollView, View } from 'react-native';
 
+import {
+  mockSelfConfirmSafe,
+  mockTriggerFallDetected,
+  mockTriggerNoResponse,
+} from '@/api/mock/escalationsMock';
+import { USE_MOCK_CARE_TARGETS } from '@/config/env';
 import { useAuthStore } from '@/features/auth/application/store/authStore';
 import { RISK_SENTENCE, riskKey } from '@/features/careTargets/domain/services/risk';
 import { useCareTargetStatus } from '@/features/careTargets/application/hooks/useCareTargetStatus';
@@ -28,15 +35,46 @@ import { useLogout } from '@/features/auth/application/hooks/useLogout';
 /** 이 화면 전용 크기 — 공용 variant보다 한 단계 크게 간다 */
 const HERO_FONT = { fontSize: 34, lineHeight: 44 };
 
+/** 촬영용 — 실제로는 목소리로 확인하는 흐름이라, 별도 화면 이동 없이 홈에서 바로 전환한다. */
+const IS_DEMO_MODE = Platform.OS === 'web' && USE_MOCK_CARE_TARGETS;
+type DemoPhase = 'idle' | 'listening' | 'confirmed' | 'noResponse';
+
 export function RecipientHomeView() {
   const user = useAuthStore((state) => state.user);
   const careTargetId = user?.care_target_id;
   const logout = useLogout();
+  const [demoPhase, setDemoPhase] = useState<DemoPhase>('idle');
 
   // care_target_id는 A5 응답에서만 온다. 옛 버전에서 저장된 세션에는 없을 수 있고,
   // 그때 0을 넣어 조회하면 404가 난다 — 아예 조회하지 않고 재연결을 안내한다.
   const linked = typeof careTargetId === 'number' && careTargetId > 0;
   const { data, isError, refreshing, refreshByUser } = useCareTargetStatus(linked ? careTargetId : NaN);
+
+  // 촬영용 키보드 트리거("1"=낙상 감지, "2"=음성으로 안전 확인, "3"=무응답→보호자 알림) —
+  // 웹+mock에서만 동작, 화면엔 안 보인다. 화면 이동 없이 홈 배너만 바꾼다.
+  useEffect(() => {
+    if (!IS_DEMO_MODE || typeof careTargetId !== 'number') return;
+    const id = careTargetId;
+    const escalationId = data?.active_escalation?.escalation_id;
+    function handler(e: KeyboardEvent) {
+      if (e.key === '1') {
+        mockTriggerFallDetected(id);
+        setDemoPhase('listening');
+        void refreshByUser();
+      } else if (e.key === '2' && escalationId != null) {
+        void mockSelfConfirmSafe(escalationId).then(() => {
+          setDemoPhase('confirmed');
+          void refreshByUser();
+        });
+      } else if (e.key === '3' && escalationId != null) {
+        mockTriggerNoResponse(escalationId);
+        setDemoPhase('noResponse');
+        void refreshByUser();
+      }
+    }
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [careTargetId, data, refreshByUser]);
 
   if (!linked) {
     return (
@@ -75,7 +113,44 @@ export function RecipientHomeView() {
         {/* 알림이 꺼져 있으면 안부를 여쭐 수 없다 — 이 화면의 존재 이유가 사라진다 */}
         <PushPermissionCard body={RECIPIENT_PUSH_REASON} emphasis="strong" />
 
-        {active ? (
+        {IS_DEMO_MODE && demoPhase === 'listening' ? (
+          <View
+            className="gap-4 p-6"
+            style={{ borderRadius: 24, backgroundColor: RISK_SURFACES.DANGER, ...SHADOW_SOFT }}
+          >
+            <Text variant="headline" style={{ ...HERO_FONT, color: RISK_COLORS.DANGER }}>
+              괜찮으신가요?
+            </Text>
+            <View className="flex-row items-center gap-3 py-1">
+              <View
+                style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: RISK_COLORS.DANGER }}
+              />
+              <Text variant="body">듣고 있어요…</Text>
+            </View>
+          </View>
+        ) : IS_DEMO_MODE && demoPhase === 'confirmed' ? (
+          <View
+            className="gap-3 p-6"
+            style={{ borderRadius: 24, backgroundColor: SURFACE.card, ...SHADOW_SOFT }}
+          >
+            <Text variant="headline" style={HERO_FONT}>
+              잘 알겠어요
+            </Text>
+            <Text variant="body" tone="muted">
+              보호자에게도 알려 드렸어요.
+            </Text>
+          </View>
+        ) : IS_DEMO_MODE && demoPhase === 'noResponse' ? (
+          <View
+            className="gap-3 p-6"
+            style={{ borderRadius: 24, backgroundColor: RISK_SURFACES.DANGER, ...SHADOW_SOFT }}
+          >
+            <Text variant="headline" style={{ ...HERO_FONT, color: RISK_COLORS.DANGER }}>
+              보호자에게 알렸어요
+            </Text>
+            <Text variant="body">응답이 없어 곧 도움을 요청해요.</Text>
+          </View>
+        ) : active ? (
           <View
             className="gap-4 p-6"
             style={{ borderRadius: 24, backgroundColor: RISK_SURFACES.DANGER, ...SHADOW_SOFT }}
