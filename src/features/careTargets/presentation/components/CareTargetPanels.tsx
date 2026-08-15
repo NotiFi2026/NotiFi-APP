@@ -185,6 +185,18 @@ export function CareTargetPanels({
               router.push({ pathname: '/(app)/(tabs)/home/[id]/reports', params } as unknown as Href)
             }
           />
+          {/* 어르신 본인 계정 연결(R5) — 보호자를 늘리는 R1-a와 다른 코드다.
+              보호자 관리 안에 두면 발급자가 두 코드를 헷갈리고, 잘못 건네면
+              서버가 Redis 키를 분리해 둬서 그냥 "유효하지 않은 코드"만 나온다. */}
+          <QuickLink
+            label="어르신 앱 연결"
+            onPress={() =>
+              router.push({
+                pathname: '/(app)/(tabs)/home/[id]/recipient-code',
+                params,
+              } as unknown as Href)
+            }
+          />
           <QuickLink
             label="보호자 관리"
             onPress={() =>
