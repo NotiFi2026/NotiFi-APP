@@ -13,9 +13,6 @@
       "channel": "main",
       "android": {
         "buildType": "apk"
-      },
-      "env": {
-        "EXPO_PUBLIC_USE_MOCK_AUTH": "true"
       }
     },
     "production": {

@@ -50,6 +50,20 @@ const config: ExpoConfig = {
         defaultChannel: 'emergency',
       },
     ],
+    /**
+     * 릴리스 APK는 Android 기본값대로 **평문 HTTP를 차단한다**(targetSdk 28+).
+     * Expo Go·dev build는 디버그 매니페스트라 허용되지만 preview/production APK는 아니다.
+     *
+     * 시연 단계의 Spring은 아직 `http://<host>:8080`이라 이걸 켜지 않으면 앱이 서버에
+     * 닿지 못한다 — 그런데 화면에는 그냥 "불러오지 못했어요"로만 보여서 원인을 찾기 어렵다.
+     * 서버가 HTTPS(도메인+인증서)로 올라가면 이 블록을 지우는 것이 맞다.
+     */
+    [
+      'expo-build-properties',
+      {
+        android: { usesCleartextTraffic: true },
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
