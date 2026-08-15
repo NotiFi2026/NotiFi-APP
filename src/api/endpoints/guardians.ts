@@ -69,6 +69,35 @@ export async function issueInviteCode(
   return unwrap(data);
 }
 
+export interface RecipientCodeCreateResponse {
+  code: string;
+  /** ISO datetime — 24시간 후 만료 */
+  expires_at: string;
+}
+
+/**
+ * R5 어르신 연결코드 발급 — 주 보호자만. 24시간 유효, 일회성.
+ *
+ * 보호자 초대코드(R1-a)와 **서로 다른 코드다.** 이건 어르신이 자기 폰에서 로그인할 때
+ * 쓰는 것으로, A5(`/auth/recipient-signup`)가 소비한다. 서버도 Redis 키를 분리해 둬서
+ * 서로 바꿔 넣으면 그냥 "유효하지 않은 코드"가 된다.
+ *
+ * **최초 연결뿐 아니라 재연결 복구 경로이기도 하다.** 어르신은 이메일·비밀번호를
+ * 소유하지 않으므로(보호자가 만들어 준다) 앱 재설치·기기 교체로 세션이 끊기면 스스로
+ * 돌아올 방법이 없다. 그래서 이미 연결된 어르신에게도 발급된다.
+ *
+ * 목 분기를 두지 않는다 — `config/env.ts`가 목 디렉터리를 실서버 확인 후 지운다고
+ * 명시했고 그 시점은 지났다. 지울 자산을 새로 늘리지 않는다.
+ */
+export async function issueRecipientCode(
+  careTargetId: number
+): Promise<RecipientCodeCreateResponse> {
+  const { data } = await apiClient.post<ApiResponse<RecipientCodeCreateResponse>>(
+    `/care-targets/${careTargetId}/recipient-codes`
+  );
+  return unwrap(data);
+}
+
 /**
  * R1-c 미리보기 응답 — 코드를 **소모하지 않는다**(실호출 확인). 같은 코드로 바로 수락할 수 있다.
  *

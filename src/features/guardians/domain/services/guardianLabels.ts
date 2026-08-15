@@ -28,6 +28,8 @@ export const guardianErrorMessage = createErrorMessage(
     TOO_MANY_INVITE_ATTEMPTS: '코드를 여러 번 잘못 입력했어요. 10분 뒤에 다시 시도해 주세요.',
     RELATIONSHIP_ALREADY_EXISTS: '이미 보호자로 등록되어 있어요.',
     RELATIONSHIP_NOT_FOUND: '존재하지 않는 보호자예요.',
+    // R5 어르신 연결코드 발급에서 나올 수 있다 — 삭제된 어르신
+    CARE_TARGET_NOT_FOUND: '어르신 정보를 찾을 수 없어요.',
     CANNOT_DELETE_PRIMARY: '주 보호자는 연결을 해제할 수 없어요.',
     ACCESS_DENIED: '주 보호자만 할 수 있어요.',
   },
